@@ -65,10 +65,19 @@
   footer {
     animation: fade-in 0.85s cubic-bezier(.27,.67,.42,1.08) both;
   }
+  /* Ergonomic container gutters */
+  .container {
+    width: min(1200px, 100% - 32px);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
   
   img { max-width: 100%; display: block; }
   a { color: var(--text); text-decoration: none; transition: color 0.25s;}
   p { line-height: 1.6; transition: color 0.18s; }
+  h1, h2, h3 { margin: 10px 0 12px; }
   
   /* ===== Navbar ===== */
   .navbar {
@@ -128,7 +137,7 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 14px;
+    padding: 8px 12px;
     border-radius: 10px;
     background: linear-gradient(180deg, var(--primary) 0%, var(--primary-600) 100%);
     color: white;
@@ -140,6 +149,7 @@
     overflow: hidden;
     animation: pop 0.36s cubic-bezier(.41,.76,.52,1.16);
   }
+  .btn-compact { padding: 6px 10px; border-radius: 8px; }
 .btn-buy { background: linear-gradient(180deg, #10b981 0%, #059669 100%); box-shadow: 0 6px 14px rgba(16,185,129,0.35); }
 .btn-buy:hover { box-shadow: 0 10px 22px rgba(16,185,129,0.4); }
 .btn-danger { background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%); box-shadow: 0 6px 14px rgba(239,68,68,0.35); }

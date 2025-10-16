@@ -9,6 +9,7 @@ class AuthController {
             require_once MODELS_PATH . '/Utilisateur.php';
             $email = sanitize($_POST['email'] ?? '');
             $password = $_POST['password'] ?? '';
+            $passwordConfirm = $_POST['password_confirm'] ?? '';
 
             $userModel = new Utilisateur();
             $user = $userModel->findByEmail($email);
@@ -46,6 +47,8 @@ class AuthController {
 
             if (!$email || !$password) {
                 $error = 'Email et mot de passe requis';
+            } elseif ($password !== $passwordConfirm) {
+                $error = 'Les mots de passe ne correspondent pas';
             } else {
                 $utilisateur = new Utilisateur();
                 $exists = $utilisateur->findByEmail($email);

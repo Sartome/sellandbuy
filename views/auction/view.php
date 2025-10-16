@@ -23,7 +23,10 @@
             <div class="body">
                 <p class="desc">Prix de départ: <?php echo number_format((float)$auction['starting_price'], 2, ',', ' '); ?> €</p>
                 <p class="price">Prix actuel: <?php echo number_format((float)$auction['current_price'], 2, ',', ' '); ?> €</p>
-                <p class="seller">Fin: <?php echo htmlspecialchars($auction['ends_at']); ?></p>
+                <p class="seller">Fin: <span id="auction-ends-at" data-ends="<?php echo htmlspecialchars($auction['ends_at']); ?>"><?php echo htmlspecialchars($auction['ends_at']); ?></span>
+                    <span id="countdown" style="margin-left:8px;"></span>
+                </p>
+                <p class="seller">Nombre d'enchérisseurs: <?php echo (int)($biddersCount ?? 0); ?></p>
                 <?php if (!empty($_SESSION['user_id'])): ?>
                 <form method="post" action="<?php echo BASE_URL; ?>/index.php?controller=auction&action=bid">
                     <input type="hidden" name="auction_id" value="<?php echo (int)$auction['id']; ?>">

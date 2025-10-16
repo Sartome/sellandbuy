@@ -75,6 +75,13 @@ class Auction {
         $stmt->execute([$auctionId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function countDistinctBidders(int $auctionId): int {
+        $stmt = $this->pdo->prepare("SELECT COUNT(DISTINCT user_id) AS c FROM bids WHERE auction_id=?");
+        $stmt->execute([$auctionId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)($row['c'] ?? 0);
+    }
 }
 
 

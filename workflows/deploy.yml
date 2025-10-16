@@ -1,0 +1,24 @@
+name: Déployer site PHP
+
+# Déclenche le workflow à chaque push sur main
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  ftp-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 1️⃣ Récupérer le code du dépôt
+      - uses: actions/checkout@v3
+
+      # 2️⃣ Déployer via FTP
+      - name: Déploiement FTP
+        uses: SamKirkland/FTP-Deploy-Action@4.1.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./    # le dossier à envoyer
+          server-dir: /    # dossier sur le serveur

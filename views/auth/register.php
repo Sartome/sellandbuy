@@ -35,6 +35,10 @@
                 <label>Mot de passe</label>
                 <input type="password" name="password" required />
             </div>
+            <div class="form-group">
+                <label>Confirmez le mot de passe</label>
+                <input type="password" name="password_confirm" required />
+            </div>
         </div>
         <div class="form-group">
             <label>Je suis</label>

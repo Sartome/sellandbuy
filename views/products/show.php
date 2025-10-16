@@ -21,9 +21,12 @@
             <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
                 <?php if (!empty($_SESSION['user_id']) && (int)($_SESSION['user_id']) !== (int)$product['id_vendeur']): ?>
                     <a class="btn btn-buy" href="<?php echo BASE_URL; ?>/index.php?controller=product&action=buy&id=<?php echo (int)$product['id_produit']; ?>">Acheter</a>
+                    <a class="btn" href="<?php echo BASE_URL; ?>/index.php?controller=prepurchase&action=create&id=<?php echo (int)$product['id_produit']; ?>">Pré-commander</a>
+                    <a class="btn" href="<?php echo BASE_URL; ?>/index.php?controller=auction&action=view&product_id=<?php echo (int)$product['id_produit']; ?>">Enchères</a>
                 <?php endif; ?>
                 <?php if (!empty($_SESSION['user_id']) && ((int)$_SESSION['user_id'] === (int)$product['id_vendeur'] || !empty($_SESSION['is_admin']))): ?>
                     <a class="btn btn-danger" href="<?php echo BASE_URL; ?>/index.php?controller=product&action=delete&id=<?php echo (int)$product['id_produit']; ?>" onclick="return confirm('Supprimer ce produit ?');">Supprimer</a>
+                    <a class="btn" href="<?php echo BASE_URL; ?>/index.php?controller=auction&action=create&product_id=<?php echo (int)$product['id_produit']; ?>">Créer une enchère</a>
                 <?php endif; ?>
             </div>
         </div>

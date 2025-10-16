@@ -13,8 +13,8 @@
             <input required type="number" step="0.01" min="0" name="starting_price" id="starting_price">
         </div>
         <div class="form-group">
-            <label for="duration_hours">Durée (heures)</label>
-            <input required type="number" step="1" min="1" name="duration_hours" id="duration_hours" value="24">
+            <label for="ends_at">Date/heure de fin</label>
+            <input required type="datetime-local" name="ends_at" id="ends_at">
         </div>
         <button type="submit" class="btn">Créer</button>
     </form>

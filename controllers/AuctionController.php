@@ -9,7 +9,11 @@ class AuctionController {
         $auctionModel = new Auction();
         $auction = $auctionModel->getByProduct($productId);
         $bids = [];
-        if ($auction) { $bids = $auctionModel->listBids((int)$auction['id']); }
+        $biddersCount = 0;
+        if ($auction) {
+            $bids = $auctionModel->listBids((int)$auction['id']);
+            $biddersCount = $auctionModel->countDistinctBidders((int)$auction['id']);
+        }
         $pageTitle = 'Enchères';
         require_once VIEWS_PATH . '/auction/view.php';
     }
@@ -28,11 +32,11 @@ class AuctionController {
         $auctionModel = new Auction();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $starting = (float)($_POST['starting_price'] ?? 0);
-            $durationHours = (int)($_POST['duration_hours'] ?? 24);
-            if ($starting <= 0 || $durationHours <= 0) {
-                $error = 'Vérifiez les champs';
+            $endsAtInput = trim($_POST['ends_at'] ?? '');
+            $endsAt = $endsAtInput ? date('Y-m-d H:i:s', strtotime($endsAtInput)) : '';
+            if ($starting <= 0 || !$endsAt || strtotime($endsAt) <= time()) {
+                $error = 'Prix ou date de fin invalide (doit être dans le futur)';
             } else {
-                $endsAt = date('Y-m-d H:i:s', time() + $durationHours * 3600);
                 if ($auctionModel->create($productId, $starting, $endsAt)) {
                     redirect('/index.php?controller=auction&action=view&product_id=' . $productId, 'Enchère créée');
                 } else {

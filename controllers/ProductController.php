@@ -60,6 +60,7 @@ class ProductController {
     public function buy() {
         requireLogin();
         require_once MODELS_PATH . '/Produit.php';
+        require_once MODELS_PATH . '/Sale.php';
         $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
         $productModel = new Produit();
         $product = $productModel->findById($id);
@@ -70,8 +71,10 @@ class ProductController {
         if ((int)$product['id_vendeur'] === (int)($_SESSION['user_id'] ?? 0)) {
             redirect('/index.php?controller=product&action=index', 'Vous ne pouvez pas acheter votre propre produit', 'error');
         }
-        // Simulation d’achat réussie
-        redirect('/index.php?controller=product&action=show&id=' . $id, 'Achat simulé avec succès');
+        // Enregistrer la vente
+        $sale = new Sale();
+        $sale->create($id, (int)$_SESSION['user_id'], (float)$product['prix']);
+        redirect('/index.php?controller=product&action=show&id=' . $id, 'Achat enregistré avec succès');
     }
 
     public function delete() {
