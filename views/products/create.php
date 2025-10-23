@@ -8,15 +8,59 @@
         <div class="alert error"><?php echo htmlspecialchars($error); ?></div>
     <?php endif; ?>
 
-    <form method="post" enctype="multipart/form-data" id="product-form">
+    <form method="post" enctype="multipart/form-data" id="product-form" data-loading>
         <div class="form-group">
             <label>Description</label>
             <textarea name="description" required placeholder="Décrivez votre produit en détail..."></textarea>
         </div>
         
+        <!-- Type de vente -->
         <div class="form-group">
-            <label>Prix (€)</label>
-            <input type="number" name="prix" min="0" step="0.01" required placeholder="0.00" />
+            <label>Type de vente</label>
+            <div class="sale-type-selector">
+                <label class="sale-type-option">
+                    <input type="radio" name="sale_type" value="buy" checked>
+                    <div class="option-content">
+                        <i class="fas fa-shopping-cart"></i>
+                        <h4>Achat direct</h4>
+                        <p>Vente immédiate à prix fixe</p>
+                    </div>
+                </label>
+                <label class="sale-type-option">
+                    <input type="radio" name="sale_type" value="auction">
+                    <div class="option-content">
+                        <i class="fas fa-gavel"></i>
+                        <h4>Enchère</h4>
+                        <p>Mise aux enchères avec temps limite</p>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Prix fixe (pour achat direct) -->
+        <div class="form-group" id="fixed-price-group">
+            <label>Prix fixe (€)</label>
+            <input type="number" name="prix" min="0" step="0.01" placeholder="0.00" />
+        </div>
+
+        <!-- Prix de départ (pour enchère) -->
+        <div class="form-group" id="auction-price-group" style="display: none;">
+            <label>Prix de départ (€)</label>
+            <input type="number" name="starting_price" min="0" step="0.01" placeholder="0.00" />
+        </div>
+
+        <!-- Date de fin d'enchère -->
+        <div class="form-group" id="auction-end-group" style="display: none;">
+            <label>Fin de l'enchère</label>
+            <input type="datetime-local" name="auction_end" />
+            <small>L'enchère se terminera automatiquement à cette date</small>
+        </div>
+
+        <!-- Quantité disponible -->
+        <div class="form-group">
+            <label>Quantité disponible</label>
+            <input type="number" name="quantity" min="1" value="1" required />
+            <small>Nombre d'articles disponibles à la vente</small>
         </div>
 
         <!-- Section Upload d'Images -->
@@ -89,6 +133,83 @@
 </main>
 
 <style>
+/* Styles pour le sélecteur de type de vente */
+.sale-type-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+    margin: 16px 0;
+}
+
+.sale-type-option {
+    cursor: pointer;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: all 0.3s ease;
+    background: var(--panel);
+}
+
+.sale-type-option:hover {
+    border-color: var(--primary);
+    background: rgba(124,58,237,0.05);
+    transform: translateY(-2px);
+}
+
+.sale-type-option input[type="radio"] {
+    display: none;
+}
+
+.sale-type-option input[type="radio"]:checked + .option-content {
+    color: var(--primary);
+}
+
+.sale-type-option input[type="radio"]:checked {
+    border-color: var(--primary);
+    background: rgba(124,58,237,0.1);
+    box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
+}
+
+.option-content {
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.option-content i {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+    color: var(--muted);
+    transition: all 0.3s ease;
+}
+
+.sale-type-option input[type="radio"]:checked + .option-content i {
+    color: var(--primary);
+}
+
+.option-content h4 {
+    margin: 8px 0 4px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.option-content p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--muted);
+}
+
+.sale-type-option input[type="radio"]:checked + .option-content p {
+    color: var(--text);
+}
+
+/* Styles pour les champs conditionnels */
+.form-group small {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
 .image-upload-container {
     border: 2px dashed var(--border);
     border-radius: var(--radius);
@@ -285,6 +406,51 @@ document.addEventListener('DOMContentLoaded', function() {
     
     let selectedFiles = [];
     let primaryImageIndex = 0;
+
+    // Gestion du type de vente
+    const saleTypeRadios = document.querySelectorAll('input[name="sale_type"]');
+    const fixedPriceGroup = document.getElementById('fixed-price-group');
+    const auctionPriceGroup = document.getElementById('auction-price-group');
+    const auctionEndGroup = document.getElementById('auction-end-group');
+    
+    // Fonction pour gérer l'affichage des champs selon le type de vente
+    function handleSaleTypeChange() {
+        const selectedType = document.querySelector('input[name="sale_type"]:checked').value;
+        
+        if (selectedType === 'buy') {
+            fixedPriceGroup.style.display = 'block';
+            auctionPriceGroup.style.display = 'none';
+            auctionEndGroup.style.display = 'none';
+            
+            // Rendre le champ prix obligatoire
+            document.querySelector('input[name="prix"]').required = true;
+            document.querySelector('input[name="starting_price"]').required = false;
+            document.querySelector('input[name="auction_end"]').required = false;
+        } else if (selectedType === 'auction') {
+            fixedPriceGroup.style.display = 'none';
+            auctionPriceGroup.style.display = 'block';
+            auctionEndGroup.style.display = 'block';
+            
+            // Rendre les champs d'enchère obligatoires
+            document.querySelector('input[name="prix"]').required = false;
+            document.querySelector('input[name="starting_price"]').required = true;
+            document.querySelector('input[name="auction_end"]').required = true;
+            
+            // Définir la date minimum (maintenant + 1 heure)
+            const now = new Date();
+            now.setHours(now.getHours() + 1);
+            const minDateTime = now.toISOString().slice(0, 16);
+            document.querySelector('input[name="auction_end"]').min = minDateTime;
+        }
+    }
+    
+    // Écouter les changements de type de vente
+    saleTypeRadios.forEach(radio => {
+        radio.addEventListener('change', handleSaleTypeChange);
+    });
+    
+    // Initialiser l'affichage
+    handleSaleTypeChange();
 
     // Drag and drop functionality
     uploadArea.addEventListener('dragover', function(e) {

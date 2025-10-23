@@ -153,3 +153,21 @@ CREATE TABLE Participation (
     FOREIGN KEY (id_prevente) REFERENCES Prevente(id_prevente),
     FOREIGN KEY (id_facture) REFERENCES Facture(id_facture)
 );
+
+-- ==========================
+-- Table des paramètres du site
+-- ==========================
+CREATE TABLE site_settings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    setting_key VARCHAR(100) UNIQUE NOT NULL,
+    setting_value TEXT,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Insertion des paramètres par défaut
+INSERT INTO site_settings (setting_key, setting_value, description) VALUES
+('tax_rate', '20.00', 'Taux de taxe en pourcentage (ex: 20.00 pour 20%)'),
+('tax_enabled', '1', 'Activer/désactiver les taxes (1 = activé, 0 = désactivé)'),
+('tax_name', 'TVA', 'Nom de la taxe (ex: TVA, Tax, etc.)');

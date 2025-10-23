@@ -7,7 +7,7 @@
     <?php if (!empty($error)): ?>
         <div class="alert error"><?php echo htmlspecialchars($error); ?></div>
     <?php endif; ?>
-    <form method="post">
+    <form method="post" data-loading>
         <div class="form-group">
             <label for="starting_price">Prix de départ (€)</label>
             <input required type="number" step="0.01" min="0" name="starting_price" id="starting_price">

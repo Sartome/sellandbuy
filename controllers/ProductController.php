@@ -29,31 +29,75 @@ class ProductController {
         require_once HELPERS_PATH . '/ImageUpload.php';
         require_once MODELS_PATH . '/ProduitImage.php';
         
+        // Vérifier si l'utilisateur peut créer des produits
+        if (!canCreateProducts()) {
+            die('Accès réservé aux vendeurs et administrateurs');
+        }
+        
         $vendeurModel = new Vendeur();
         $vendeur = $vendeurModel->findByUserId((int)($_SESSION['user_id'] ?? 0));
-        if (!$vendeur) {
-            die('Accès réservé aux vendeurs');
-        }
+        $isAdmin = isAdmin();
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             require_once MODELS_PATH . '/Produit.php';
             $catModel = new Categorie();
             $defaultCatId = $catModel->ensureDefaultAcquisition();
             
+            $saleType = sanitize($_POST['sale_type'] ?? 'buy');
+            // Déterminer l'ID du vendeur à utiliser
+            $vendorId = null;
+            if ($vendeur) {
+                $vendorId = $vendeur['id_user'];
+            } elseif ($isAdmin) {
+                // Pour les admins, créer un profil vendeur s'il n'existe pas
+                $adminVendeurData = [
+                    'id_user' => (int)$_SESSION['user_id'],
+                    'nom_entreprise' => 'Administrateur',
+                    'adresse' => '',
+                    'telephone' => '',
+                    'certifie' => 1 // Les admins sont automatiquement certifiés
+                ];
+                
+                if ($vendeurModel->create($adminVendeurData)) {
+                    $vendorId = (int)$_SESSION['user_id'];
+                } else {
+                    die('Erreur: Impossible de créer le profil vendeur pour l\'administrateur');
+                }
+            }
+            
+            if (!$vendorId) {
+                die('Erreur: Impossible de déterminer l\'ID du vendeur');
+            }
+            
             $data = [
                 'description' => sanitize($_POST['description'] ?? ''),
                 'prix' => (float)($_POST['prix'] ?? 0),
                 'image' => '', // Sera mis à jour après upload
                 'image_alt' => sanitize($_POST['image_alt'] ?? ''),
-                'id_vendeur' => (int)$_SESSION['user_id'],
+                'id_vendeur' => $vendorId,
                 'id_categorie' => (int)($_POST['id_categorie'] ?? $defaultCatId),
+                'quantity' => (int)($_POST['quantity'] ?? 1),
             ];
             
             $productModel = new Produit();
             $imageUpload = new ImageUpload();
             $produitImageModel = new ProduitImage();
             
-            if ($data['description'] && $data['prix'] > 0) {
+            // Validation selon le type de vente
+            $isValid = false;
+            if ($saleType === 'buy') {
+                $isValid = $data['description'] && $data['prix'] > 0;
+            } else if ($saleType === 'auction') {
+                $startingPrice = (float)($_POST['starting_price'] ?? 0);
+                $auctionEnd = sanitize($_POST['auction_end'] ?? '');
+                $isValid = $data['description'] && $startingPrice > 0 && $auctionEnd && strtotime($auctionEnd) > time();
+                
+                if ($isValid) {
+                    $data['prix'] = $startingPrice; // Utiliser le prix de départ pour l'affichage
+                }
+            }
+            
+            if ($isValid) {
                 // Créer le produit d'abord
                 if ($productModel->create($data)) {
                     $productId = $productModel->getLastInsertId();
@@ -97,7 +141,21 @@ class ProductController {
                         $productModel->updateImage($productId, $uploadedImages[0]['webPath']);
                     }
                     
-                    redirect('/index.php?controller=product&action=index', 'Produit créé avec succès');
+                    // Si c'est une enchère, créer l'enchère
+                    if ($saleType === 'auction') {
+                        require_once MODELS_PATH . '/Auction.php';
+                        $auctionModel = new Auction();
+                        $startingPrice = (float)($_POST['starting_price'] ?? 0);
+                        $auctionEnd = date('Y-m-d H:i:s', strtotime($_POST['auction_end']));
+                        
+                        if ($auctionModel->create($productId, $startingPrice, $auctionEnd)) {
+                            redirect('/index.php?controller=auction&action=view&product_id=' . $productId, 'Enchère créée avec succès');
+                        } else {
+                            redirect('/index.php?controller=product&action=index', 'Produit créé mais erreur lors de la création de l\'enchère');
+                        }
+                    } else {
+                        redirect('/index.php?controller=product&action=index', 'Produit créé avec succès');
+                    }
                 } else {
                     $error = 'Erreur lors de la création du produit';
                 }
@@ -124,14 +182,23 @@ class ProductController {
         if (!$product) {
             redirect('/index.php?controller=product&action=index', 'Produit introuvable', 'error');
         }
-        // Empêcher l’achat de son propre produit
+        // Empêcher l'achat de son propre produit
         if ((int)$product['id_vendeur'] === (int)($_SESSION['user_id'] ?? 0)) {
             redirect('/index.php?controller=product&action=index', 'Vous ne pouvez pas acheter votre propre produit', 'error');
         }
-        // Enregistrer la vente
+        
+        // Vérifier le stock
+        if (!$productModel->isInStock($id, 1)) {
+            redirect('/index.php?controller=product&action=show&id=' . $id, 'Ce produit n\'est plus en stock', 'error');
+        }
+        
+        // Enregistrer la vente et réduire le stock
         $sale = new Sale();
-        $sale->create($id, (int)$_SESSION['user_id'], (float)$product['prix']);
-        redirect('/index.php?controller=product&action=show&id=' . $id, 'Achat enregistré avec succès');
+        if ($sale->create($id, (int)$_SESSION['user_id'], (float)$product['prix']) && $productModel->decreaseQuantity($id, 1)) {
+            redirect('/index.php?controller=product&action=show&id=' . $id, 'Achat enregistré avec succès');
+        } else {
+            redirect('/index.php?controller=product&action=show&id=' . $id, 'Erreur lors de l\'achat', 'error');
+        }
     }
 
     public function delete() {

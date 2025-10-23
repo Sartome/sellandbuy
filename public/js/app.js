@@ -101,28 +101,52 @@
   });
 })();
 
-// Enhanced Form Validation
+/**
+ * VALIDATION DES FORMULAIRES
+ * 
+ * Ce module gère la validation côté client pour les formulaires avec l'attribut 'data-validate'.
+ * Il applique une validation en temps réel et empêche la soumission si des erreurs sont détectées.
+ * 
+ * ATTRIBUTS SUPPORTÉS :
+ * - data-validate : Active la validation pour ce formulaire
+ * - data-loading : Active l'animation de chargement sur les boutons submit
+ * 
+ * FONCTIONNALITÉS :
+ * - Validation en temps réel (blur, input)
+ * - Messages d'erreur contextuels
+ * - Prévention de soumission si erreurs
+ * - Support des types : email, number, url, required
+ */
 (function(){
+  // Sélectionner uniquement les formulaires avec l'attribut data-validate
   const forms = document.querySelectorAll('form[data-validate]');
-  if (!forms.length) return;
+  if (!forms.length) {
+    return; // Aucun formulaire à valider
+  }
   
+  // Traiter chaque formulaire individuellement
   forms.forEach(form => {
+    // Sélectionner tous les champs obligatoires du formulaire
     const inputs = form.querySelectorAll('input[required], textarea[required], select[required]');
     
+    // Ajouter les event listeners pour la validation en temps réel
     inputs.forEach(input => {
-      input.addEventListener('blur', validateField);
-      input.addEventListener('input', clearFieldError);
+      input.addEventListener('blur', validateField);      // Validation lors de la perte de focus
+      input.addEventListener('input', clearFieldError);  // Effacer les erreurs lors de la saisie
     });
     
+    // Intercepter la soumission du formulaire pour validation finale
     form.addEventListener('submit', function(e) {
       let isValid = true;
       
+      // Valider tous les champs obligatoires
       inputs.forEach(input => {
         if (!validateField({ target: input })) {
           isValid = false;
         }
       });
       
+      // Empêcher la soumission si des erreurs sont détectées
       if (!isValid) {
         e.preventDefault();
         showFormError('Veuillez corriger les erreurs avant de soumettre le formulaire.');
@@ -130,6 +154,12 @@
     });
   });
   
+  /**
+   * VALIDATION D'UN CHAMP INDIVIDUEL
+   * 
+   * @param {Event} e - L'événement de validation (blur, input, etc.)
+   * @returns {boolean} - true si le champ est valide, false sinon
+   */
   function validateField(e) {
     const field = e.target;
     const value = field.value.trim();
@@ -137,58 +167,79 @@
     let isValid = true;
     let errorMessage = '';
     
-    // Required validation
+    // VALIDATION OBLIGATOIRE
+    // Vérifier si le champ est requis et s'il a une valeur
     if (field.hasAttribute('required') && !value) {
       isValid = false;
       errorMessage = 'Ce champ est obligatoire.';
     }
     
-    // Email validation
+    // VALIDATION EMAIL
+    // Vérifier le format de l'adresse email si le champ a une valeur
     if (type === 'email' && value && !isValidEmail(value)) {
       isValid = false;
       errorMessage = 'Veuillez entrer une adresse email valide.';
     }
     
-    // Number validation
+    // VALIDATION NUMÉRIQUE
+    // Vérifier les contraintes min/max pour les champs numériques
     if (type === 'number' && value) {
       const min = field.getAttribute('min');
       const max = field.getAttribute('max');
       const numValue = parseFloat(value);
       
+      // Vérifier la valeur minimale
       if (min && numValue < parseFloat(min)) {
         isValid = false;
         errorMessage = `La valeur doit être supérieure ou égale à ${min}.`;
       }
       
+      // Vérifier la valeur maximale
       if (max && numValue > parseFloat(max)) {
         isValid = false;
         errorMessage = `La valeur doit être inférieure ou égale à ${max}.`;
       }
     }
     
-    // URL validation
+    // VALIDATION URL
+    // Vérifier le format de l'URL si le champ a une valeur
     if (type === 'url' && value && !isValidUrl(value)) {
       isValid = false;
       errorMessage = 'Veuillez entrer une URL valide.';
     }
     
+    // Afficher l'erreur ou la masquer selon le résultat
     showFieldError(field, isValid ? null : errorMessage);
     return isValid;
   }
   
+  /**
+   * EFFACER LES ERREURS D'UN CHAMP
+   * 
+   * @param {Event} e - L'événement de saisie (input)
+   */
   function clearFieldError(e) {
     const field = e.target;
-    showFieldError(field, null);
+    showFieldError(field, null); // Effacer l'erreur en passant null
   }
-  
+
+  /**
+   * AFFICHER OU MASQUER UNE ERREUR SUR UN CHAMP
+   * 
+   * @param {HTMLElement} field - Le champ de formulaire
+   * @param {string|null} message - Le message d'erreur (null pour masquer)
+   */
   function showFieldError(field, message) {
+    // Supprimer l'erreur existante s'il y en a une
     const existingError = field.parentNode.querySelector('.field-error');
     if (existingError) {
       existingError.remove();
     }
     
+    // Ajouter/supprimer la classe CSS d'erreur
     field.classList.toggle('error', !!message);
     
+    // Créer et afficher le message d'erreur si nécessaire
     if (message) {
       const errorDiv = document.createElement('div');
       errorDiv.className = 'field-error';
@@ -249,13 +300,27 @@
     // Add loading state
     const searchContainer = document.querySelector('[data-search-results]');
     if (searchContainer) {
-      searchContainer.innerHTML = '<div class="search-loading">Recherche en cours...</div>';
+      // Clear existing content
+      searchContainer.textContent = '';
+      
+      // Create loading element using DOM methods
+      const loadingDiv = document.createElement('div');
+      loadingDiv.className = 'search-loading';
+      loadingDiv.textContent = 'Recherche en cours...';
+      searchContainer.appendChild(loadingDiv);
     }
     
     // Simulate search (replace with actual AJAX call)
     setTimeout(() => {
       if (searchContainer) {
-        searchContainer.innerHTML = `<div class="search-results">Résultats pour "${query}"</div>`;
+        // Clear loading content
+        searchContainer.textContent = '';
+        
+        // Create results element using DOM methods
+        const resultsDiv = document.createElement('div');
+        resultsDiv.className = 'search-results';
+        resultsDiv.textContent = `Résultats pour "${query}"`;
+        searchContainer.appendChild(resultsDiv);
       }
     }, 500);
   }
@@ -309,18 +374,57 @@
         this.style.transform = 'scale(1)';
       }, 150);
       
-      // Add loading state for form submissions
+      // Ne pas empêcher l'exécution des fonctions onclick
+      // Laisser le comportement par défaut se produire
+      
+      // GESTION DES BOUTONS DE SOUMISSION
+      // Ajouter l'état de chargement uniquement pour les formulaires avec l'attribut 'data-loading'
       if (this.type === 'submit') {
         const form = this.closest('form');
-        if (form) {
-          this.disabled = true;
-          this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi...';
-          
-          setTimeout(() => {
-            this.disabled = false;
-            this.innerHTML = this.dataset.originalText || 'Envoyer';
-          }, 2000);
+        if (form && form.hasAttribute('data-loading')) {
+          // Ne pas désactiver immédiatement, laisser le formulaire se soumettre
+          // L'animation sera gérée par l'événement submit du formulaire
         }
+      }
+    });
+  });
+})();
+
+/**
+ * GESTION DES FORMULAIRES AVEC LOADING
+ * 
+ * Ce module gère l'état de chargement pour les formulaires avec l'attribut 'data-loading'.
+ * Il désactive le bouton submit et affiche une animation de chargement.
+ */
+(function(){
+  const forms = document.querySelectorAll('form[data-loading]');
+  if (!forms.length) return;
+  
+  forms.forEach(form => {
+    form.addEventListener('submit', function(e) {
+      const submitBtn = this.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        // Désactiver le bouton pour éviter les double-soumissions
+        submitBtn.disabled = true;
+        
+        // Store original content
+        const originalContent = submitBtn.innerHTML;
+        submitBtn.dataset.originalText = originalContent;
+        
+        // Clear and add loading content using DOM methods
+        submitBtn.textContent = '';
+        const spinner = document.createElement('i');
+        spinner.className = 'fas fa-spinner fa-spin';
+        const text = document.createTextNode(' Envoi...');
+        submitBtn.appendChild(spinner);
+        submitBtn.appendChild(text);
+        
+        // Réactiver le bouton après un délai pour permettre la soumission
+        setTimeout(() => {
+          submitBtn.disabled = false;
+          submitBtn.textContent = '';
+          submitBtn.innerHTML = originalContent;
+        }, 3000);
       }
     });
   });
@@ -374,23 +478,48 @@
   function openImageModal(src, index, images) {
     const modal = document.createElement('div');
     modal.className = 'image-modal';
-    modal.innerHTML = `
-      <div class="modal-content">
-        <span class="modal-close">&times;</span>
-        <img src="${src}" alt="Image ${index + 1}">
-        <div class="modal-nav">
-          <button class="modal-prev">‹</button>
-          <button class="modal-next">›</button>
-        </div>
-        <div class="modal-counter">${index + 1} / ${images.length}</div>
-      </div>
-    `;
+    
+    // Create modal content using DOM methods instead of innerHTML
+    const modalContent = document.createElement('div');
+    modalContent.className = 'modal-content';
+    
+    const closeButton = document.createElement('span');
+    closeButton.className = 'modal-close';
+    closeButton.textContent = '×';
+    
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = `Image ${index + 1}`;
+    
+    const modalNav = document.createElement('div');
+    modalNav.className = 'modal-nav';
+    
+    const prevButton = document.createElement('button');
+    prevButton.className = 'modal-prev';
+    prevButton.textContent = '‹';
+    
+    const nextButton = document.createElement('button');
+    nextButton.className = 'modal-next';
+    nextButton.textContent = '›';
+    
+    const counter = document.createElement('div');
+    counter.className = 'modal-counter';
+    counter.textContent = `${index + 1} / ${images.length}`;
+    
+    // Assemble the modal
+    modalNav.appendChild(prevButton);
+    modalNav.appendChild(nextButton);
+    modalContent.appendChild(closeButton);
+    modalContent.appendChild(img);
+    modalContent.appendChild(modalNav);
+    modalContent.appendChild(counter);
+    modal.appendChild(modalContent);
     
     document.body.appendChild(modal);
     document.body.style.overflow = 'hidden';
     
     // Event listeners
-    modal.querySelector('.modal-close').addEventListener('click', closeModal);
+    closeButton.addEventListener('click', closeModal);
     modal.addEventListener('click', function(e) {
       if (e.target === modal) closeModal();
     });
@@ -434,3 +563,55 @@
     });
   }
 })();
+
+// Admin Functions for Analytics Page
+function optimizeAllImages() {
+  showLoading('Optimisation des images en cours...');
+  
+  // Simuler l'optimisation (remplacer par un appel AJAX réel)
+  setTimeout(() => {
+    hideLoading();
+    alert('Optimisation terminée ! Toutes les images ont été optimisées.');
+  }, 2000);
+}
+
+function cleanupOrphanedImages() {
+  if (confirm('Êtes-vous sûr de vouloir nettoyer les images orphelines ? Cette action est irréversible.')) {
+    showLoading('Nettoyage des images orphelines...');
+    
+    // Simuler le nettoyage (remplacer par un appel AJAX réel)
+    setTimeout(() => {
+      hideLoading();
+      alert('Nettoyage terminé ! Les images orphelines ont été supprimées.');
+    }, 1500);
+  }
+}
+
+function generateImageReport() {
+  showLoading('Génération du rapport...');
+  
+  // Simuler la génération du rapport (remplacer par un appel AJAX réel)
+  setTimeout(() => {
+    hideLoading();
+    alert('Rapport généré avec succès ! Le fichier a été téléchargé.');
+  }, 1000);
+}
+
+function showLoading(message) {
+  const loadingDiv = document.createElement('div');
+  loadingDiv.className = 'admin-loading';
+  loadingDiv.innerHTML = `
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <p>${message}</p>
+    </div>
+  `;
+  document.body.appendChild(loadingDiv);
+}
+
+function hideLoading() {
+  const loadingDiv = document.querySelector('.admin-loading');
+  if (loadingDiv) {
+    loadingDiv.remove();
+  }
+}

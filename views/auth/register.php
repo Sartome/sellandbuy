@@ -10,33 +10,33 @@
         </div>
 
         <?php if (!empty($error)): ?>
-            <div class="alert error">
-                <i class="fas fa-exclamation-triangle"></i>
-                <?php echo htmlspecialchars($error); ?>
+            <div class="alert error" style="animation: shake 0.5s ease-in-out; background: #fee; border: 2px solid #f88; color: #c33; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(204, 51, 51, 0.2);">
+                <i class="fas fa-exclamation-triangle" style="margin-right: 8px; color: #c33;"></i>
+                <strong>Erreur d'inscription :</strong> <?php echo htmlspecialchars($error); ?>
             </div>
         <?php endif; ?>
 
-        <form method="post" id="register-form" data-validate>
+        <form method="post" action="index.php?controller=auth&action=register" id="register-form">
             <!-- Informations personnelles -->
             <div class="form-section">
                 <h3><i class="fas fa-user"></i> Informations personnelles</h3>
                 <div class="grid two">
                     <div class="form-group">
-                        <label>Prénom *</label>
-                        <input type="text" name="prenom" required placeholder="Votre prénom" />
+                        <label for="register-prenom">Prénom *</label>
+                        <input type="text" id="register-prenom" name="prenom" autocomplete="given-name" required placeholder="Votre prénom" />
                     </div>
                     <div class="form-group">
-                        <label>Nom *</label>
-                        <input type="text" name="nom" required placeholder="Votre nom" />
+                        <label for="register-nom">Nom *</label>
+                        <input type="text" id="register-nom" name="nom" autocomplete="family-name" required placeholder="Votre nom" />
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Adresse</label>
-                    <input type="text" name="adresse" placeholder="Votre adresse complète" />
+                    <label for="register-adresse">Adresse</label>
+                    <input type="text" id="register-adresse" name="adresse" autocomplete="street-address" placeholder="Votre adresse complète" />
                 </div>
                 <div class="form-group">
-                    <label>Téléphone</label>
-                    <input type="tel" name="phone" placeholder="Votre numéro de téléphone" />
+                    <label for="register-phone">Téléphone</label>
+                    <input type="tel" id="register-phone" name="phone" autocomplete="tel" placeholder="Votre numéro de téléphone" />
                 </div>
             </div>
 
@@ -44,18 +44,18 @@
             <div class="form-section">
                 <h3><i class="fas fa-lock"></i> Informations de connexion</h3>
                 <div class="form-group">
-                    <label>Email *</label>
-                    <input type="email" name="email" required placeholder="votre@email.com" />
+                    <label for="register-email">Email *</label>
+                    <input type="email" id="register-email" name="email" autocomplete="email" required placeholder="votre@email.com" />
                 </div>
                 <div class="grid two">
                     <div class="form-group">
-                        <label>Mot de passe *</label>
-                        <input type="password" name="password" required placeholder="Minimum 6 caractères" minlength="6" />
+                        <label for="register-password">Mot de passe *</label>
+                        <input type="password" id="register-password" name="password" autocomplete="new-password" required placeholder="Minimum 6 caractères" minlength="6" />
                         <div class="password-strength" id="password-strength"></div>
                     </div>
                     <div class="form-group">
-                        <label>Confirmez le mot de passe *</label>
-                        <input type="password" name="password_confirm" required placeholder="Répétez votre mot de passe" />
+                        <label for="register-password-confirm">Confirmez le mot de passe *</label>
+                        <input type="password" id="register-password-confirm" name="password_confirm" autocomplete="new-password" required placeholder="Répétez votre mot de passe" />
                     </div>
                 </div>
             </div>
@@ -134,6 +134,12 @@
 </main>
 
 <style>
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
 .auth-container {
     max-width: 600px;
     margin: 0 auto;

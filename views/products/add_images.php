@@ -17,7 +17,7 @@
         <div class="alert error"><?php echo htmlspecialchars($error); ?></div>
     <?php endif; ?>
 
-    <form method="post" enctype="multipart/form-data" id="add-images-form">
+    <form method="post" enctype="multipart/form-data" id="add-images-form" data-loading>
         <!-- Section Upload d'Images -->
         <div class="form-group">
             <label>Nouvelles images</label>

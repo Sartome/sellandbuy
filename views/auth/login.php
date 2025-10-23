@@ -10,21 +10,21 @@
         </div>
 
         <?php if (!empty($error)): ?>
-            <div class="alert error">
-                <i class="fas fa-exclamation-triangle"></i>
-                <?php echo htmlspecialchars($error); ?>
+            <div class="alert error" style="animation: shake 0.5s ease-in-out; background: #fee; border: 2px solid #f88; color: #c33; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(204, 51, 51, 0.2);">
+                <i class="fas fa-exclamation-triangle" style="margin-right: 8px; color: #c33;"></i>
+                <strong>Erreur de connexion :</strong> <?php echo htmlspecialchars($error); ?>
             </div>
         <?php endif; ?>
 
-        <form method="post" action="index.php?controller=auth&action=login" id="login-form" data-validate>
+        <form method="post" action="index.php?controller=auth&action=login" id="login-form">
             <div class="form-section">
                 <div class="form-group">
-                    <label>Email *</label>
-                    <input type="email" name="email" required placeholder="votre@email.com" />
+                    <label for="login-email">Email *</label>
+                    <input type="email" id="login-email" name="email" autocomplete="email" required placeholder="votre@email.com" />
                 </div>
                 <div class="form-group">
-                    <label>Mot de passe *</label>
-                    <input type="password" name="password" required placeholder="Votre mot de passe" />
+                    <label for="login-password">Mot de passe *</label>
+                    <input type="password" id="login-password" name="password" autocomplete="current-password" required placeholder="Votre mot de passe" />
                 </div>
             </div>
 
@@ -42,126 +42,6 @@
     </div>
 </main>
 
-<style>
-.auth-container {
-    max-width: 400px;
-    margin: 0 auto;
-    padding: 40px 20px;
-}
-
-.auth-header {
-    text-align: center;
-    margin-bottom: 40px;
-}
-
-.auth-header h1 {
-    margin: 0 0 12px 0;
-    font-size: 2.5rem;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.auth-header p {
-    color: var(--muted);
-    font-size: 1.1rem;
-    margin: 0;
-}
-
-.form-section {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 24px;
-    margin-bottom: 24px;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group:last-child {
-    margin-bottom: 0;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    color: var(--text);
-    font-weight: 500;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 12px 16px;
-    background: var(--panel);
-    color: var(--text);
-    border: 2px solid var(--border);
-    border-radius: var(--radius);
-    outline: none;
-    transition: all 0.3s ease;
-    font-size: 1rem;
-}
-
-.form-group input:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
-    background: var(--panel-2);
-}
-
-.form-group input::placeholder {
-    color: var(--muted);
-}
-
-.form-actions {
-    text-align: center;
-    margin-top: 32px;
-}
-
-.btn-large {
-    padding: 16px 32px;
-    font-size: 1.1rem;
-    font-weight: bold;
-    width: 100%;
-}
-
-.auth-footer {
-    text-align: center;
-    margin-top: 32px;
-    padding-top: 24px;
-    border-top: 1px solid var(--border);
-}
-
-.auth-footer p {
-    color: var(--muted);
-    margin: 8px 0;
-}
-
-.link {
-    color: var(--primary);
-    text-decoration: none;
-    font-weight: 500;
-}
-
-.link:hover {
-    text-decoration: underline;
-}
-
-@media (max-width: 640px) {
-    .auth-container {
-        padding: 20px 16px;
-    }
-    
-    .auth-header h1 {
-        font-size: 2rem;
-    }
-    
-    .form-section {
-        padding: 16px;
-    }
-}
-</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

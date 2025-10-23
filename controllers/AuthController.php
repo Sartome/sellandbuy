@@ -33,7 +33,17 @@ class AuthController {
                 error_log("No user found with email: " . $email);
             }
 
-            if ($user && password_verify($password, $user['motdepasse'])) {
+            // Validation des champs
+            if (empty($email) || empty($password)) {
+                $error = 'Veuillez remplir tous les champs';
+            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $error = 'Adresse email invalide';
+            } elseif (!$user) {
+                $error = 'Aucun compte trouvé avec cette adresse email';
+            } elseif (!password_verify($password, $user['motdepasse'])) {
+                $error = 'Mot de passe incorrect';
+            } else {
+                // Connexion réussie
                 error_log("Password verification successful");
                 
                 // Créer la session
@@ -53,9 +63,6 @@ class AuthController {
                 
                 error_log("About to redirect to: " . BASE_URL . "/index.php?controller=product&action=index");
                 redirect('/index.php?controller=product&action=index', 'Connexion réussie');
-            } else {
-                error_log("Password verification failed");
-                $error = 'Identifiants invalides';
             }
         }
         require_once VIEWS_PATH . '/auth/login.php';
@@ -77,12 +84,17 @@ class AuthController {
             $passwordConfirm = $_POST['password_confirm'] ?? '';
             $role = sanitize($_POST['role'] ?? 'client'); // client | vendeur
 
-            if (!$email || !$password) {
-                $error = 'Email et mot de passe requis';
+            // Validation des champs
+            if (empty($nom) || empty($prenom) || empty($email) || empty($password)) {
+                $error = 'Veuillez remplir tous les champs obligatoires';
+            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $error = 'Adresse email invalide';
             } elseif ($password !== $passwordConfirm) {
                 $error = 'Les mots de passe ne correspondent pas';
             } elseif (strlen($password) < 6) {
                 $error = 'Le mot de passe doit contenir au moins 6 caractères';
+            } elseif (!preg_match('/^(?=.*[a-zA-Z])(?=.*\d)/', $password)) {
+                $error = 'Le mot de passe doit contenir au moins une lettre et un chiffre';
             } else {
                 $utilisateur = new Utilisateur();
                 $exists = $utilisateur->findByEmail($email);

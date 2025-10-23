@@ -82,6 +82,20 @@ class Auction {
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return (int)($row['c'] ?? 0);
     }
+
+    public function getUserBids(int $userId): array {
+        $stmt = $this->pdo->prepare("
+            SELECT b.*, a.id_produit, a.current_price, a.ends_at, a.status,
+                   p.description, p.prix, p.image
+            FROM bids b
+            JOIN auctions a ON b.auction_id = a.id
+            JOIN Produit p ON a.id_produit = p.id_produit
+            WHERE b.user_id = ?
+            ORDER BY b.created_at DESC
+        ");
+        $stmt->execute([$userId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 
 

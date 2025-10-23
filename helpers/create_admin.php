@@ -1,6 +1,17 @@
 <?php
-// helpers/create_admin.php
-// Script pour créer un compte administrateur
+/**
+ * Script de création et gestion des comptes administrateur
+ * 
+ * Ce script permet de :
+ * - Créer un compte administrateur par défaut
+ * - Promouvoir un utilisateur existant en administrateur
+ * - Lister les administrateurs existants
+ * 
+ * Usage en ligne de commande :
+ * php create_admin.php create
+ * php create_admin.php make-admin email@example.com
+ * php create_admin.php list
+ */
 
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../models/Utilisateur.php';

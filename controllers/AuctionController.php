@@ -20,11 +20,32 @@ class AuctionController {
 
     public function create() {
         requireLogin();
+        
+        // Vérifier si l'utilisateur peut créer des enchères
+        if (!canCreateAuctions()) {
+            die('Accès réservé aux vendeurs et administrateurs');
+        }
+        
         require_once MODELS_PATH . '/Vendeur.php';
         require_once MODELS_PATH . '/Auction.php';
         $vendeurModel = new Vendeur();
         $vendeur = $vendeurModel->findByUserId((int)($_SESSION['user_id'] ?? 0));
-        if (!$vendeur) { die('Accès réservé aux vendeurs'); }
+        $isAdmin = isAdmin();
+        
+        // Si l'utilisateur n'est pas vendeur mais est admin, créer un profil vendeur
+        if (!$vendeur && $isAdmin) {
+            $adminVendeurData = [
+                'id_user' => (int)$_SESSION['user_id'],
+                'nom_entreprise' => 'Administrateur',
+                'adresse' => '',
+                'telephone' => '',
+                'certifie' => 1 // Les admins sont automatiquement certifiés
+            ];
+            
+            if ($vendeurModel->create($adminVendeurData)) {
+                $vendeur = $vendeurModel->findByUserId((int)$_SESSION['user_id']);
+            }
+        }
 
         $productId = (int)($_GET['product_id'] ?? 0);
         if ($productId <= 0) { die('Produit invalide'); }

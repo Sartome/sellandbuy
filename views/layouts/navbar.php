@@ -7,6 +7,9 @@
             <a href="<?php echo BASE_URL; ?>/index.php?controller=product&action=index">
                 <i class="fas fa-store"></i> Produits
             </a>
+            <a href="<?php echo BASE_URL; ?>/index.php?controller=acquisition&action=index">
+                <i class="fas fa-shopping-cart"></i> Mes Acquisitions
+            </a>
             <?php if (!empty($_SESSION['is_admin'])): ?>
             <a href="<?php echo BASE_URL; ?>/index.php?controller=admin&action=index">
                 <i class="fas fa-shield-alt"></i> Admin

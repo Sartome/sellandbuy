@@ -1,10 +1,19 @@
 <?php
-// models/Database.php
+/**
+ * Singleton de connexion à la base de données
+ * 
+ * Implémente le pattern Singleton pour garantir une seule instance
+ * de connexion PDO dans toute l'application.
+ */
 
 class Database {
     private static $instance = null;
     private $pdo;
     
+    /**
+     * Constructeur privé pour empêcher l'instanciation directe
+     * Établit la connexion PDO avec la base de données
+     */
     private function __construct() {
         try {
             $this->pdo = new PDO(
@@ -18,6 +27,11 @@ class Database {
         }
     }
     
+    /**
+     * Retourne l'instance unique de la classe
+     * Crée une nouvelle instance si elle n'existe pas
+     * @return Database Instance unique de la classe
+     */
     public static function getInstance() {
         if (self::$instance === null) {
             self::$instance = new self();
@@ -25,6 +39,10 @@ class Database {
         return self::$instance;
     }
     
+    /**
+     * Retourne la connexion PDO
+     * @return PDO Connexion à la base de données
+     */
     public function getConnection() {
         return $this->pdo;
     }

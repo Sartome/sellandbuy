@@ -126,8 +126,15 @@ class ImageUpload {
     
     /**
      * Redimensionner une image en gardant les proportions
+     * Version sans GD - copie simplement l'image originale
      */
     private function resizeImage($sourcePath, $destPath, $maxWidth, $maxHeight) {
+        // Vérifier si GD est disponible
+        if (!extension_loaded('gd')) {
+            // Si GD n'est pas disponible, copier simplement l'image originale
+            return copy($sourcePath, $destPath);
+        }
+        
         $imageInfo = getimagesize($sourcePath);
         if (!$imageInfo) return false;
         
@@ -247,8 +254,15 @@ class ImageUpload {
     
     /**
      * Optimiser une image existante
+     * Version sans GD - retourne simplement true
      */
     public function optimizeImage($filepath, $quality = 85) {
+        // Vérifier si GD est disponible
+        if (!extension_loaded('gd')) {
+            // Si GD n'est pas disponible, retourner true (pas d'optimisation)
+            return true;
+        }
+        
         $imageInfo = getimagesize($filepath);
         if (!$imageInfo) return false;
         
