@@ -4,26 +4,57 @@
 class AuthController {
     
     public function login() {
+        // Debug: Log de l'appel de la méthode
+        error_log("AuthController::login() called - Method: " . $_SERVER['REQUEST_METHOD']);
+        
+        $error = ''; // Initialiser la variable d'erreur
+        
         // Logique de connexion
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            error_log("POST request received");
+            error_log("POST data: " . print_r($_POST, true));
+            
             require_once MODELS_PATH . '/Utilisateur.php';
             $email = sanitize($_POST['email'] ?? '');
             $password = $_POST['password'] ?? '';
-            $passwordConfirm = $_POST['password_confirm'] ?? '';
+
+            // Debug: Log des données reçues
+            error_log("Login attempt - Email: " . $email);
+            error_log("Login attempt - Password length: " . strlen($password));
 
             $userModel = new Utilisateur();
             $user = $userModel->findByEmail($email);
 
+            // Debug: Log du résultat de la recherche utilisateur
+            if ($user) {
+                error_log("User found - ID: " . $user['id_user'] . ", Email: " . $user['email']);
+                error_log("Stored password hash: " . substr($user['motdepasse'], 0, 20) . "...");
+            } else {
+                error_log("No user found with email: " . $email);
+            }
+
             if ($user && password_verify($password, $user['motdepasse'])) {
+                error_log("Password verification successful");
+                
+                // Créer la session
                 $_SESSION['user_id'] = $user['id_user'];
                 $_SESSION['email'] = $user['email'];
                 $_SESSION['username'] = trim(($user['prenom'] ?? '') . ' ' . ($user['nom'] ?? '')) ?: $user['email'];
+                
+                error_log("Session variables set: user_id=" . $_SESSION['user_id'] . ", email=" . $_SESSION['email']);
+                
                 // Déterminer si admin (Gestionnaire)
                 require_once MODELS_PATH . '/Gestionnaire.php';
                 $gest = new Gestionnaire();
                 $_SESSION['is_admin'] = $gest->isAdminUser((int)$user['id_user']);
+                
+                error_log("Admin check completed: " . ($_SESSION['is_admin'] ? 'true' : 'false'));
+                error_log("Session data before redirect: " . print_r($_SESSION, true));
+                
+                error_log("About to redirect to: " . BASE_URL . "/index.php?controller=product&action=index");
                 redirect('/index.php?controller=product&action=index', 'Connexion réussie');
             } else {
+                error_log("Password verification failed");
                 $error = 'Identifiants invalides';
             }
         }
@@ -43,12 +74,15 @@ class AuthController {
             $phone = sanitize($_POST['phone'] ?? '');
             $email = sanitize($_POST['email'] ?? '');
             $password = $_POST['password'] ?? '';
+            $passwordConfirm = $_POST['password_confirm'] ?? '';
             $role = sanitize($_POST['role'] ?? 'client'); // client | vendeur
 
             if (!$email || !$password) {
                 $error = 'Email et mot de passe requis';
             } elseif ($password !== $passwordConfirm) {
                 $error = 'Les mots de passe ne correspondent pas';
+            } elseif (strlen($password) < 6) {
+                $error = 'Le mot de passe doit contenir au moins 6 caractères';
             } else {
                 $utilisateur = new Utilisateur();
                 $exists = $utilisateur->findByEmail($email);

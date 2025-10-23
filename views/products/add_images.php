@@ -2,31 +2,30 @@
 <?php require VIEWS_PATH . '/layouts/navbar.php'; ?>
 
 <main class="container">
-    <h1>Vendre un produit</h1>
+    <div class="breadcrumb">
+        <a href="<?php echo BASE_URL; ?>/index.php?controller=product&action=index">Produits</a>
+        <span>›</span>
+        <a href="<?php echo BASE_URL; ?>/index.php?controller=product&action=show&id=<?php echo $productId; ?>"><?php echo htmlspecialchars($product['description']); ?></a>
+        <span>›</span>
+        <span>Ajouter des images</span>
+    </div>
+
+    <h1>Ajouter des images</h1>
+    <p class="subtitle">Ajoutez des images supplémentaires à votre produit</p>
 
     <?php if (!empty($error)): ?>
         <div class="alert error"><?php echo htmlspecialchars($error); ?></div>
     <?php endif; ?>
 
-    <form method="post" enctype="multipart/form-data" id="product-form">
-        <div class="form-group">
-            <label>Description</label>
-            <textarea name="description" required placeholder="Décrivez votre produit en détail..."></textarea>
-        </div>
-        
-        <div class="form-group">
-            <label>Prix (€)</label>
-            <input type="number" name="prix" min="0" step="0.01" required placeholder="0.00" />
-        </div>
-
+    <form method="post" enctype="multipart/form-data" id="add-images-form">
         <!-- Section Upload d'Images -->
         <div class="form-group">
-            <label>Images du produit</label>
+            <label>Nouvelles images</label>
             <div class="image-upload-container">
                 <div class="upload-area" id="upload-area">
                     <div class="upload-content">
                         <i class="fas fa-cloud-upload-alt"></i>
-                        <p>Glissez-déposez vos images ici ou cliquez pour sélectionner</p>
+                        <p>Glissez-déposez vos nouvelles images ici ou cliquez pour sélectionner</p>
                         <small>Formats acceptés: JPEG, PNG, WebP, GIF (max 5MB par image)</small>
                     </div>
                     <input type="file" name="images[]" id="image-input" multiple accept="image/*" style="display: none;">
@@ -37,58 +36,71 @@
                     <h4>📏 Recommandations de taille</h4>
                     <div class="recommendations-grid">
                         <div class="recommendation-item">
-                            <strong>Thumbnail:</strong> <?php echo $sizeRecommendations['recommendedSizes']['thumbnail']['width']; ?>x<?php echo $sizeRecommendations['recommendedSizes']['thumbnail']['height']; ?>px
+                            <strong>Thumbnail:</strong> 300x300px
                         </div>
                         <div class="recommendation-item">
-                            <strong>Moyenne:</strong> <?php echo $sizeRecommendations['recommendedSizes']['medium']['width']; ?>x<?php echo $sizeRecommendations['recommendedSizes']['medium']['height']; ?>px
+                            <strong>Moyenne:</strong> 800x600px
                         </div>
                         <div class="recommendation-item">
-                            <strong>Grande:</strong> <?php echo $sizeRecommendations['recommendedSizes']['large']['width']; ?>x<?php echo $sizeRecommendations['recommendedSizes']['large']['height']; ?>px
+                            <strong>Grande:</strong> 1200x900px
                         </div>
                     </div>
                     <div class="tips">
-                        <?php foreach ($sizeRecommendations['tips'] as $tip): ?>
-                            <div class="tip">💡 <?php echo htmlspecialchars($tip); ?></div>
-                        <?php endforeach; ?>
+                        <div class="tip">💡 Pour de meilleures performances, utilisez des images de 800x600px maximum</div>
+                        <div class="tip">💡 Les formats WebP et JPEG offrent le meilleur compromis qualité/taille</div>
+                        <div class="tip">💡 Évitez les images trop lourdes pour améliorer le temps de chargement</div>
                     </div>
                 </div>
 
                 <!-- Prévisualisation des images -->
                 <div class="image-preview-container" id="image-preview-container" style="display: none;">
-                    <h4>📸 Aperçu des images</h4>
+                    <h4>📸 Aperçu des nouvelles images</h4>
                     <div class="image-preview-grid" id="image-preview-grid"></div>
                 </div>
             </div>
         </div>
 
         <div class="form-group">
-            <label>Texte alternatif pour les images</label>
+            <label>Texte alternatif pour les nouvelles images</label>
             <input type="text" name="image_alt" placeholder="Description courte des images pour l'accessibilité" />
-        </div>
-
-        <div class="form-group">
-            <label>Catégorie</label>
-            <select name="id_categorie">
-                <?php foreach (($categories ?? []) as $cat): ?>
-                    <option value="<?php echo (int)$cat['id_categorie']; ?>">
-                        <?php echo htmlspecialchars($cat['lib']); ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
         </div>
 
         <div class="form-actions">
             <button class="btn" type="submit">
-                <i class="fas fa-plus"></i> Publier le produit
+                <i class="fas fa-plus"></i> Ajouter les images
             </button>
-            <button class="btn btn-secondary" type="button" onclick="history.back()">
-                <i class="fas fa-arrow-left"></i> Annuler
-            </button>
+            <a class="btn btn-secondary" href="<?php echo BASE_URL; ?>/index.php?controller=product&action=show&id=<?php echo $productId; ?>">
+                <i class="fas fa-arrow-left"></i> Retour au produit
+            </a>
         </div>
     </form>
+
+    <!-- Images existantes -->
+    <?php if (!empty($existingImages)): ?>
+        <div class="existing-images">
+            <h3>Images actuelles</h3>
+            <div class="existing-images-grid">
+                <?php foreach ($existingImages as $index => $image): ?>
+                    <div class="existing-image-item">
+                        <img src="<?php echo htmlspecialchars($image['image_path']); ?>" 
+                             alt="<?php echo htmlspecialchars($image['image_alt'] ?? ''); ?>">
+                        <?php if ($image['is_primary']): ?>
+                            <div class="primary-badge">⭐ PRINCIPALE</div>
+                        <?php endif; ?>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    <?php endif; ?>
 </main>
 
 <style>
+.subtitle {
+    color: var(--muted);
+    margin-bottom: 24px;
+    font-size: 1.1rem;
+}
+
 .image-upload-container {
     border: 2px dashed var(--border);
     border-radius: var(--radius);
@@ -233,18 +245,6 @@
     transform: scale(1.1);
 }
 
-.image-preview-item .primary-badge {
-    position: absolute;
-    bottom: 4px;
-    left: 4px;
-    background: var(--success);
-    color: white;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: bold;
-}
-
 .form-actions {
     display: flex;
     gap: 12px;
@@ -260,6 +260,51 @@
     box-shadow: 0 10px 22px rgba(107,114,128,0.4);
 }
 
+.existing-images {
+    margin-top: 40px;
+    padding: 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.existing-images h3 {
+    margin: 0 0 16px 0;
+    color: var(--text);
+}
+
+.existing-images-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 12px;
+}
+
+.existing-image-item {
+    position: relative;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.existing-image-item img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    display: block;
+}
+
+.primary-badge {
+    position: absolute;
+    bottom: 4px;
+    left: 4px;
+    background: var(--success);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+}
+
 @media (max-width: 640px) {
     .recommendations-grid {
         grid-template-columns: 1fr;
@@ -272,6 +317,10 @@
     .image-preview-grid {
         grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     }
+    
+    .existing-images-grid {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    }
 }
 </style>
 
@@ -281,10 +330,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const imageInput = document.getElementById('image-input');
     const previewContainer = document.getElementById('image-preview-container');
     const previewGrid = document.getElementById('image-preview-grid');
-    const form = document.getElementById('product-form');
+    const form = document.getElementById('add-images-form');
     
     let selectedFiles = [];
-    let primaryImageIndex = 0;
 
     // Drag and drop functionality
     uploadArea.addEventListener('dragover', function(e) {
@@ -358,14 +406,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 previewItem.innerHTML = `
                     <img src="${e.target.result}" alt="Preview">
                     <button type="button" class="remove-btn" onclick="removeImage(${index})">×</button>
-                    ${index === primaryImageIndex ? '<div class="primary-badge">PRINCIPALE</div>' : ''}
                 `;
-                
-                previewItem.addEventListener('click', function(e) {
-                    if (e.target.tagName !== 'BUTTON') {
-                        setPrimaryImage(index);
-                    }
-                });
                 
                 previewGrid.appendChild(previewItem);
             };
@@ -381,27 +422,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function removeImage(index) {
         selectedFiles.splice(index, 1);
-        
-        if (primaryImageIndex >= index && primaryImageIndex > 0) {
-            primaryImageIndex--;
-        } else if (primaryImageIndex >= selectedFiles.length) {
-            primaryImageIndex = Math.max(0, selectedFiles.length - 1);
-        }
-        
         updatePreview();
         updateFileInput();
-    }
-
-    function setPrimaryImage(index) {
-        primaryImageIndex = index;
-        updatePreview();
     }
 
     // Form validation
     form.addEventListener('submit', function(e) {
         if (selectedFiles.length === 0) {
             e.preventDefault();
-            showAlert('Veuillez sélectionner au moins une image pour votre produit.', 'error');
+            showAlert('Veuillez sélectionner au moins une image à ajouter.', 'error');
             return;
         }
     });
@@ -421,10 +450,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Make functions globally available
     window.removeImage = removeImage;
-    window.setPrimaryImage = setPrimaryImage;
 });
 </script>
 
 <?php require VIEWS_PATH . '/layouts/footer.php'; ?>
-
-

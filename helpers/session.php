@@ -5,7 +5,6 @@ function isLoggedIn() {
     return isset($_SESSION['user_id']);
 }
 
-// Ancienne notion de directeur supprimée
 function isAdmin() {
     return !empty($_SESSION['is_admin']);
 }

@@ -58,6 +58,10 @@ CREATE TABLE Produit (
     description VARCHAR(255),                   -- Description
     prix DECIMAL(10,2),                         -- Prix du produit
     image VARCHAR(255),                         -- Lien/chemin image
+    image_alt VARCHAR(255),                      -- Texte alternatif pour l'image
+    image_size INT,                             -- Taille de l'image en bytes
+    image_width INT,                            -- Largeur de l'image en pixels
+    image_height INT,                           -- Hauteur de l'image en pixels
     id_vendeur INT,                             -- Référence vendeur
     id_categorie INT NULL,                      -- Catégorie du produit
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -66,6 +70,21 @@ CREATE TABLE Produit (
     INDEX idx_produit_categorie (id_categorie),
     FOREIGN KEY (id_vendeur) REFERENCES Vendeur(id_user), -- Un vendeur est un utilisateur
     FOREIGN KEY (id_categorie) REFERENCES Categorie(id_categorie)
+);
+
+-- Table pour stocker les images multiples par produit
+CREATE TABLE ProduitImages (
+    id_image INT PRIMARY KEY AUTO_INCREMENT,
+    id_produit INT,
+    image_path VARCHAR(255),
+    image_alt VARCHAR(255),
+    image_size INT,
+    image_width INT,
+    image_height INT,
+    is_primary BOOLEAN DEFAULT FALSE,
+    sort_order INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_produit) REFERENCES Produit(id_produit) ON DELETE CASCADE
 );
 
 
