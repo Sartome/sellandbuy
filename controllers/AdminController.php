@@ -366,7 +366,7 @@ class AdminController {
     }
 
     /**
-     * Gestion des paramètres du site (taxes, etc.)
+     * Gestion des taxes
      */
     public function settings() {
         requireAdmin();
@@ -376,16 +376,48 @@ class AdminController {
         
         // Traitement des modifications
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (isset($_POST['action']) && $_POST['action'] === 'update_taxes') {
-                $taxRate = (float)($_POST['tax_rate'] ?? 0);
-                $taxEnabled = isset($_POST['tax_enabled']) ? 1 : 0;
-                $taxName = sanitize($_POST['tax_name'] ?? 'TVA');
-                
-                $settings->set('tax_rate', $taxRate, 'Taux de taxe en pourcentage');
-                $settings->set('tax_enabled', $taxEnabled, 'Activer/désactiver les taxes');
-                $settings->set('tax_name', $taxName, 'Nom de la taxe');
-                
-                $message = "Paramètres de taxes mis à jour avec succès";
+            if (isset($_POST['action'])) {
+                switch ($_POST['action']) {
+                    case 'update_taxes':
+                        $taxRate = (float)($_POST['tax_rate'] ?? 0);
+                        $taxEnabled = isset($_POST['tax_enabled']) ? 1 : 0;
+                        $taxName = sanitize($_POST['tax_name'] ?? 'TVA');
+                        
+                        $settings->set('tax_rate', $taxRate, 'Taux de taxe en pourcentage');
+                        $settings->set('tax_enabled', $taxEnabled, 'Activer/désactiver les taxes');
+                        $settings->set('tax_name', $taxName, 'Nom de la taxe');
+                        
+                        $message = "Paramètres de taxes mis à jour avec succès";
+                        break;
+                        
+                    case 'add_tax':
+                        $taxName = sanitize($_POST['tax_name'] ?? '');
+                        $taxRate = (float)($_POST['tax_rate'] ?? 0);
+                        $taxDescription = sanitize($_POST['tax_description'] ?? '');
+                        
+                        if (!empty($taxName) && $taxRate > 0) {
+                            $taxId = $settings->addTax($taxName, $taxRate, $taxDescription);
+                            if ($taxId) {
+                                $message = "Taxe ajoutée avec succès";
+                            } else {
+                                $error = "Erreur lors de l'ajout de la taxe";
+                            }
+                        } else {
+                            $error = "Veuillez remplir tous les champs obligatoires";
+                        }
+                        break;
+                        
+                    case 'delete_tax':
+                        $taxId = (int)($_POST['tax_id'] ?? 0);
+                        if ($taxId > 0) {
+                            if ($settings->deleteTax($taxId)) {
+                                $message = "Taxe supprimée avec succès";
+                            } else {
+                                $error = "Erreur lors de la suppression de la taxe";
+                            }
+                        }
+                        break;
+                }
             }
         }
         
@@ -396,7 +428,10 @@ class AdminController {
             'tax_name' => $settings->getTaxName()
         ];
         
-        $pageTitle = 'Paramètres du Site';
+        // Récupérer toutes les taxes
+        $allTaxes = $settings->getAllTaxes();
+        
+        $pageTitle = 'Gestion des Taxes';
         require_once VIEWS_PATH . '/admin/settings.php';
     }
 }

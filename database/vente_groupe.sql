@@ -26,6 +26,9 @@ CREATE TABLE Vendeur (
     siret VARCHAR(14),                           -- Numéro SIRET
     adresse_entreprise VARCHAR(100),             -- Adresse
     email_pro VARCHAR(100),                      -- Email pro
+    is_certified BOOLEAN DEFAULT FALSE,         -- Statut de certification
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (id_user) REFERENCES Utilisateur(id_user)
 );
 

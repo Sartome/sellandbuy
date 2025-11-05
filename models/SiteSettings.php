@@ -90,4 +90,70 @@ class SiteSettings {
         $taxRate = $this->getTaxRate();
         return $amount / (1 + ($taxRate / 100));
     }
+
+    /**
+     * Ajouter une nouvelle taxe
+     */
+    public function addTax($name, $rate, $description = '') {
+        try {
+            $stmt = $this->db->prepare("
+                INSERT INTO site_settings (setting_key, setting_value, description) 
+                VALUES (?, ?, ?)
+            ");
+            $key = 'tax_' . time() . '_' . rand(1000, 9999);
+            $value = json_encode([
+                'name' => $name,
+                'rate' => $rate,
+                'description' => $description,
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+            $stmt->execute([$key, $value, $description]);
+            return $this->db->lastInsertId();
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Supprimer une taxe
+     */
+    public function deleteTax($taxId) {
+        try {
+            $stmt = $this->db->prepare("DELETE FROM site_settings WHERE id = ?");
+            return $stmt->execute([$taxId]);
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Obtenir toutes les taxes
+     */
+    public function getAllTaxes() {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT * FROM site_settings 
+                WHERE setting_key LIKE 'tax_%' 
+                AND setting_key NOT IN ('tax_rate', 'tax_enabled', 'tax_name')
+                ORDER BY created_at DESC
+            ");
+            $stmt->execute();
+            $taxes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Décoder les données JSON
+            foreach ($taxes as &$tax) {
+                $taxData = json_decode($tax['setting_value'], true);
+                if ($taxData) {
+                    $tax['tax_name'] = $taxData['name'];
+                    $tax['tax_rate'] = $taxData['rate'];
+                    $tax['tax_description'] = $taxData['description'];
+                    $tax['created_at'] = $taxData['created_at'];
+                }
+            }
+            
+            return $taxes;
+        } catch (Exception $e) {
+            return [];
+        }
+    }
 }
