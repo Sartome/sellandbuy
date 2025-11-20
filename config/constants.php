@@ -11,6 +11,5 @@ define('HELPERS_PATH', ROOT_PATH . '/helpers');
 
 // URL de base
 define('BASE_URL', 'http://localhost/sellandbuy');
-
 // URL des assets (dossier public)
 define('ASSETS_URL', BASE_URL . '/public');

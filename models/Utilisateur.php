@@ -34,19 +34,61 @@ class Utilisateur {
         ]);
     }
 
+    public function updateProfile(int $id, array $data) {
+        $this->ensureAvatarColumn();
+
+        $avatar = $data['avatar'] ?? null;
+
+        $stmt = $this->db->prepare("UPDATE Utilisateur SET nom = ?, prenom = ?, adresse = ?, phone = ?, avatar = COALESCE(?, avatar) WHERE id_user = ?");
+        return $stmt->execute([
+            $data['nom'] ?? null,
+            $data['prenom'] ?? null,
+            $data['adresse'] ?? null,
+            $data['phone'] ?? null,
+            $avatar,
+            $id,
+        ]);
+    }
+
     /**
      * Récupérer tous les utilisateurs
      */
     public function getAllUsers() {
-        $stmt = $this->db->prepare("
-            SELECT u.*, 
-                   CASE WHEN v.id_user IS NOT NULL THEN 'Vendeur' ELSE 'Utilisateur' END as type,
-                   v.nom_entreprise,
-                   v.is_certified
-            FROM Utilisateur u 
-            LEFT JOIN Vendeur v ON u.id_user = v.id_user 
-            ORDER BY u.created_at DESC
-        ");
+        $hasCertifiedColumn = $this->vendorHasCertifiedColumn();
+
+        if ($hasCertifiedColumn) {
+            $sql = "
+                SELECT u.*, 
+                       CASE 
+                           WHEN g.id_user IS NOT NULL THEN 'Administrateur'
+                           WHEN v.id_user IS NOT NULL THEN 'Vendeur'
+                           ELSE 'Utilisateur'
+                       END as type,
+                       v.nom_entreprise,
+                       v.is_certified
+                FROM Utilisateur u 
+                LEFT JOIN Vendeur v ON u.id_user = v.id_user 
+                LEFT JOIN Gestionnaire g ON u.id_user = g.id_user
+                ORDER BY u.created_at DESC
+            ";
+        } else {
+            $sql = "
+                SELECT u.*, 
+                       CASE 
+                           WHEN g.id_user IS NOT NULL THEN 'Administrateur'
+                           WHEN v.id_user IS NOT NULL THEN 'Vendeur'
+                           ELSE 'Utilisateur'
+                       END as type,
+                       v.nom_entreprise,
+                       0 as is_certified
+                FROM Utilisateur u 
+                LEFT JOIN Vendeur v ON u.id_user = v.id_user 
+                LEFT JOIN Gestionnaire g ON u.id_user = g.id_user
+                ORDER BY u.created_at DESC
+            ";
+        }
+
+        $stmt = $this->db->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -56,16 +98,43 @@ class Utilisateur {
      */
     public function searchUsers($search) {
         $searchTerm = '%' . $search . '%';
-        $stmt = $this->db->prepare("
-            SELECT u.*, 
-                   CASE WHEN v.id_user IS NOT NULL THEN 'Vendeur' ELSE 'Utilisateur' END as type,
-                   v.nom_entreprise,
-                   v.is_certified
-            FROM Utilisateur u 
-            LEFT JOIN Vendeur v ON u.id_user = v.id_user 
-            WHERE u.nom LIKE ? OR u.prenom LIKE ? OR u.email LIKE ? OR u.phone LIKE ?
-            ORDER BY u.created_at DESC
-        ");
+        $hasCertifiedColumn = $this->vendorHasCertifiedColumn();
+
+        if ($hasCertifiedColumn) {
+            $sql = "
+                SELECT u.*, 
+                       CASE 
+                           WHEN g.id_user IS NOT NULL THEN 'Administrateur'
+                           WHEN v.id_user IS NOT NULL THEN 'Vendeur'
+                           ELSE 'Utilisateur'
+                       END as type,
+                       v.nom_entreprise,
+                       v.is_certified
+                FROM Utilisateur u 
+                LEFT JOIN Vendeur v ON u.id_user = v.id_user 
+                LEFT JOIN Gestionnaire g ON u.id_user = g.id_user
+                WHERE u.nom LIKE ? OR u.prenom LIKE ? OR u.email LIKE ? OR u.phone LIKE ?
+                ORDER BY u.created_at DESC
+            ";
+        } else {
+            $sql = "
+                SELECT u.*, 
+                       CASE 
+                           WHEN g.id_user IS NOT NULL THEN 'Administrateur'
+                           WHEN v.id_user IS NOT NULL THEN 'Vendeur'
+                           ELSE 'Utilisateur'
+                       END as type,
+                       v.nom_entreprise,
+                       0 as is_certified
+                FROM Utilisateur u 
+                LEFT JOIN Vendeur v ON u.id_user = v.id_user 
+                LEFT JOIN Gestionnaire g ON u.id_user = g.id_user
+                WHERE u.nom LIKE ? OR u.prenom LIKE ? OR u.email LIKE ? OR u.phone LIKE ?
+                ORDER BY u.created_at DESC
+            ";
+        }
+
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$searchTerm, $searchTerm, $searchTerm, $searchTerm]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -91,8 +160,8 @@ class Utilisateur {
             $stmt = $this->db->prepare("DELETE FROM Facture WHERE id_client = ?");
             $stmt->execute([$userId]);
             
-            // 4. Supprimer les enchères
-            $stmt = $this->db->prepare("DELETE FROM auctions WHERE id_vendeur = ?");
+            // 4. Supprimer les enchères liées aux produits de cet utilisateur (s'il est vendeur)
+            $stmt = $this->db->prepare("DELETE FROM auctions WHERE id_produit IN (SELECT id_produit FROM Produit WHERE id_vendeur = ?)");
             $stmt->execute([$userId]);
             
             // 5. Supprimer les produits
@@ -121,6 +190,32 @@ class Utilisateur {
         } catch (Exception $e) {
             $this->db->rollBack();
             throw new Exception("Erreur lors de la suppression : " . $e->getMessage());
+        }
+    }
+
+    private function vendorHasCertifiedColumn() {
+        try {
+            $stmt = $this->db->prepare("SHOW COLUMNS FROM Vendeur LIKE 'is_certified'");
+            $stmt->execute();
+            return $stmt->rowCount() > 0;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+    
+    private function hasAvatarColumn() {
+        try {
+            $stmt = $this->db->prepare("SHOW COLUMNS FROM Utilisateur LIKE 'avatar'");
+            $stmt->execute();
+            return $stmt->rowCount() > 0;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    private function ensureAvatarColumn() {
+        if (!$this->hasAvatarColumn()) {
+            $this->db->exec("ALTER TABLE Utilisateur ADD COLUMN avatar VARCHAR(255) NULL AFTER phone");
         }
     }
 }

@@ -49,6 +49,18 @@
                     <?php if (!empty($p['categorie'])): ?>
                         <p class="seller">Catégorie: <?php echo htmlspecialchars($p['categorie']); ?></p>
                     <?php endif; ?>
+                    <?php if (!empty($p['nom_entreprise'])): ?>
+                        <p class="seller seller-with-avatar">
+                            <span class="seller-avatar-small">
+                                <?php if (!empty($p['avatar'])): ?>
+                                    <img src="<?php echo htmlspecialchars($p['avatar']); ?>" alt="Photo du vendeur">
+                                <?php else: ?>
+                                    <i class="fas fa-store"></i>
+                                <?php endif; ?>
+                            </span>
+                            <span>Vendeur: <?php echo htmlspecialchars($p['nom_entreprise']); ?></span>
+                        </p>
+                    <?php endif; ?>
                     <?php 
                     // Vérifier si le vendeur est certifié
                     $isVendorCertified = false;
@@ -150,6 +162,29 @@
 
 .seller-badge .badge {
     font-size: 0.8rem;
+}
+
+.seller-with-avatar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.seller-avatar-small {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15,23,42,0.8);
+}
+
+.seller-avatar-small img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 /* Styles pour les enchères */

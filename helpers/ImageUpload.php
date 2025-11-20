@@ -64,6 +64,42 @@ class ImageUpload {
     }
     
     /**
+     * Upload d'un avatar (photo de profil) recadré automatiquement en carré
+     */
+    public function uploadAvatar($file) {
+        $errors = $this->validateImage($file);
+
+        if (!empty($errors)) {
+            return ['success' => false, 'errors' => $errors];
+        }
+
+        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $filename = 'avatar_' . uniqid() . '_' . time() . '.' . $extension;
+        $filepath = $this->uploadDir . $filename;
+
+        if (!move_uploaded_file($file['tmp_name'], $filepath)) {
+            return ['success' => false, 'errors' => ["Erreur lors de l'upload du fichier"]];
+        }
+
+        // Recadrer en carré (si GD disponible)
+        $this->cropToSquare($filepath, $filepath, 300);
+
+        $imageInfo = @getimagesize($filepath);
+        $width = $imageInfo[0] ?? null;
+        $height = $imageInfo[1] ?? null;
+
+        return [
+            'success' => true,
+            'filename' => $filename,
+            'filepath' => $filepath,
+            'webPath' => '/public/images/uploads/' . $filename,
+            'size' => @filesize($filepath) ?: 0,
+            'width' => $width,
+            'height' => $height,
+        ];
+    }
+    
+    /**
      * Valider une image uploadée
      */
     private function validateImage($file) {
@@ -202,6 +238,91 @@ class ImageUpload {
         imagedestroy($sourceImage);
         imagedestroy($destImage);
         
+        return $success;
+    }
+    
+    /**
+     * Recadrer une image en carré centré puis la redimensionner à targetSize x targetSize
+     */
+    private function cropToSquare($sourcePath, $destPath, $targetSize = 300) {
+        // Si GD n'est pas disponible, ne rien faire de spécial
+        if (!extension_loaded('gd')) {
+            return true;
+        }
+
+        $imageInfo = @getimagesize($sourcePath);
+        if (!$imageInfo) return false;
+
+        $originalWidth = $imageInfo[0];
+        $originalHeight = $imageInfo[1];
+        $mimeType = $imageInfo['mime'];
+
+        $side = min($originalWidth, $originalHeight);
+        $srcX = (int)(($originalWidth - $side) / 2);
+        $srcY = (int)(($originalHeight - $side) / 2);
+
+        // Créer l'image source selon le type
+        switch ($mimeType) {
+            case 'image/jpeg':
+                $sourceImage = @imagecreatefromjpeg($sourcePath);
+                break;
+            case 'image/png':
+                $sourceImage = @imagecreatefrompng($sourcePath);
+                break;
+            case 'image/webp':
+                $sourceImage = @imagecreatefromwebp($sourcePath);
+                break;
+            case 'image/gif':
+                $sourceImage = @imagecreatefromgif($sourcePath);
+                break;
+            default:
+                return false;
+        }
+
+        if (!$sourceImage) return false;
+
+        $destImage = imagecreatetruecolor($targetSize, $targetSize);
+
+        // Préserver la transparence pour PNG et GIF
+        if ($mimeType === 'image/png' || $mimeType === 'image/gif') {
+            imagealphablending($destImage, false);
+            imagesavealpha($destImage, true);
+            $transparent = imagecolorallocatealpha($destImage, 255, 255, 255, 127);
+            imagefilledrectangle($destImage, 0, 0, $targetSize, $targetSize, $transparent);
+        }
+
+        imagecopyresampled(
+            $destImage,
+            $sourceImage,
+            0,
+            0,
+            $srcX,
+            $srcY,
+            $targetSize,
+            $targetSize,
+            $side,
+            $side
+        );
+
+        $success = false;
+        switch ($mimeType) {
+            case 'image/jpeg':
+                $success = imagejpeg($destImage, $destPath, 90);
+                break;
+            case 'image/png':
+                $success = imagepng($destImage, $destPath, 8);
+                break;
+            case 'image/webp':
+                $success = imagewebp($destImage, $destPath, 90);
+                break;
+            case 'image/gif':
+                $success = imagegif($destImage, $destPath);
+                break;
+        }
+
+        imagedestroy($sourceImage);
+        imagedestroy($destImage);
+
         return $success;
     }
     

@@ -87,6 +87,18 @@
                         <?php if ($image['is_primary']): ?>
                             <div class="primary-badge">⭐ PRINCIPALE</div>
                         <?php endif; ?>
+                        <div class="existing-image-actions">
+                            <?php if (!$image['is_primary']): ?>
+                                <a class="btn btn-sm" href="<?php echo BASE_URL; ?>/index.php?controller=product&action=setPrimaryImage&image_id=<?php echo (int)$image['id_image']; ?>&product_id=<?php echo (int)$productId; ?>">
+                                    <i class="fas fa-star"></i> Couverture
+                                </a>
+                            <?php else: ?>
+                                <span class="badge certified">Couverture</span>
+                            <?php endif; ?>
+                            <a class="btn btn-danger btn-sm" href="<?php echo BASE_URL; ?>/index.php?controller=product&action=deleteImage&image_id=<?php echo (int)$image['id_image']; ?>&product_id=<?php echo (int)$productId; ?>" onclick="return confirm('Supprimer cette image ?');">
+                                <i class="fas fa-trash"></i> Supprimer
+                            </a>
+                        </div>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -291,6 +303,15 @@
     height: 100px;
     object-fit: cover;
     display: block;
+}
+
+.existing-image-actions {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .primary-badge {

@@ -51,14 +51,13 @@ class ProductController {
             } elseif ($isAdmin) {
                 // Pour les admins, créer un profil vendeur s'il n'existe pas
                 $adminVendeurData = [
-                    'id_user' => (int)$_SESSION['user_id'],
                     'nom_entreprise' => 'Administrateur',
-                    'adresse' => '',
-                    'telephone' => '',
-                    'certifie' => 1 // Les admins sont automatiquement certifiés
+                    'siret' => null,
+                    'adresse_entreprise' => '',
+                    'email_pro' => $_SESSION['email'] ?? null,
                 ];
-                
-                if ($vendeurModel->create($adminVendeurData)) {
+
+                if ($vendeurModel->create((int)$_SESSION['user_id'], $adminVendeurData)) {
                     $vendorId = (int)$_SESSION['user_id'];
                 } else {
                     die('Erreur: Impossible de créer le profil vendeur pour l\'administrateur');

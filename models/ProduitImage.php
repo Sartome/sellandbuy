@@ -84,6 +84,23 @@ class ProduitImage {
         $success = $stmt->execute([$imageId]);
         
         if ($success && $image) {
+            require_once MODELS_PATH . '/Produit.php';
+            $productModel = new Produit();
+
+            // Si c'était l'image principale, choisir une nouvelle couverture ou vider l'image produit
+            if (!empty($image['is_primary'])) {
+                $stmt2 = $this->db->prepare("SELECT * FROM ProduitImages WHERE id_produit = ? ORDER BY sort_order ASC, created_at ASC LIMIT 1");
+                $stmt2->execute([$image['id_produit']]);
+                $next = $stmt2->fetch(PDO::FETCH_ASSOC);
+
+                if ($next) {
+                    $this->setPrimaryImage((int)$next['id_image'], (int)$image['id_produit']);
+                    $productModel->updateImage((int)$image['id_produit'], $next['image_path']);
+                } else {
+                    $productModel->updateImage((int)$image['id_produit'], '');
+                }
+            }
+
             // Supprimer le fichier physique
             require_once HELPERS_PATH . '/ImageUpload.php';
             $imageUpload = new ImageUpload();

@@ -57,6 +57,14 @@
         </div>
 
         <div class="admin-card">
+            <h3>🎫 Tickets support</h3>
+            <p>Consultez et répondez aux tickets des utilisateurs</p>
+            <a href="index.php?controller=admin&action=tickets" class="btn btn-primary">
+                <i class="fas fa-life-ring"></i> Centre de tickets
+            </a>
+        </div>
+
+        <div class="admin-card">
             <h3>⚙️ Paramètres</h3>
             <p>Gérez les paramètres du site et les taxes</p>
             <a href="index.php?controller=admin&action=settings" class="btn btn-warning">

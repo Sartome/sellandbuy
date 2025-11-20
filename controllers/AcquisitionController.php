@@ -20,6 +20,10 @@ class AcquisitionController {
         require_once MODELS_PATH . '/Auction.php';
         $auctionModel = new Auction();
         $userBids = $auctionModel->getUserBids($userId);
+
+        require_once MODELS_PATH . '/Sale.php';
+        $saleModel = new Sale();
+        $purchases = $saleModel->getByBuyer($userId);
         
         // Récupérer les ventes de l'utilisateur (si vendeur)
         require_once MODELS_PATH . '/Vendeur.php';
@@ -163,5 +167,32 @@ class AcquisitionController {
         } else {
             redirect('/index.php?controller=acquisition&action=sales', 'Erreur lors de la confirmation', 'error');
         }
+    }
+
+    public function invoice() {
+        requireLogin();
+        $saleId = (int)($_GET['id'] ?? 0);
+        if ($saleId <= 0) {
+            redirect('/index.php?controller=acquisition&action=index', 'Facture introuvable', 'error');
+        }
+        require_once MODELS_PATH . '/Sale.php';
+        require_once MODELS_PATH . '/Produit.php';
+        require_once MODELS_PATH . '/Utilisateur.php';
+        require_once HELPERS_PATH . '/InvoicePdf.php';
+        $saleModel = new Sale();
+        $sale = $saleModel->findById($saleId);
+        if (!$sale || (int)$sale['buyer_id'] !== (int)($_SESSION['user_id'] ?? 0)) {
+            redirect('/index.php?controller=acquisition&action=index', 'Accès non autorisé', 'error');
+        }
+        $productModel = new Produit();
+        $product = $productModel->findById((int)$sale['product_id']);
+        $userModel = new Utilisateur();
+        $buyer = $userModel->findById((int)$sale['buyer_id']);
+        $seller = null;
+        if ($product && !empty($product['id_vendeur'])) {
+            $seller = $userModel->findById((int)$product['id_vendeur']);
+        }
+        $pdf = new InvoicePdf();
+        $pdf->outputInvoice($sale, $product, $buyer, $seller);
     }
 }

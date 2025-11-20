@@ -50,6 +50,7 @@ class AuthController {
                 $_SESSION['user_id'] = $user['id_user'];
                 $_SESSION['email'] = $user['email'];
                 $_SESSION['username'] = trim(($user['prenom'] ?? '') . ' ' . ($user['nom'] ?? '')) ?: $user['email'];
+                $_SESSION['avatar'] = $user['avatar'] ?? null;
                 
                 error_log("Session variables set: user_id=" . $_SESSION['user_id'] . ", email=" . $_SESSION['email']);
                 
@@ -141,7 +142,69 @@ class AuthController {
         }
         require_once VIEWS_PATH . '/auth/register.php';
     }
-    
+
+    public function account() {
+        requireLogin();
+        require_once MODELS_PATH . '/Utilisateur.php';
+        $userModel = new Utilisateur();
+        $userId = (int)($_SESSION['user_id'] ?? 0);
+        $user = $userModel->findById($userId);
+        if (!$user) {
+            redirect('/index.php?controller=auth&action=login', 'Utilisateur introuvable', 'error');
+        }
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $nom = sanitize($_POST['nom'] ?? '');
+            $prenom = sanitize($_POST['prenom'] ?? '');
+            $adresse = sanitize($_POST['adresse'] ?? '');
+            $phone = sanitize($_POST['phone'] ?? '');
+            $deleteAvatar = !empty($_POST['delete_avatar']);
+
+            $avatarPath = null;
+            if (!empty($_FILES['avatar']['name'] ?? '')) {
+                require_once HELPERS_PATH . '/ImageUpload.php';
+                $uploader = new ImageUpload();
+                $uploadResult = $uploader->uploadAvatar($_FILES['avatar']);
+                if (!empty($uploadResult['success'])) {
+                    $avatarPath = $uploadResult['webPath'];
+                } else {
+                    redirect('/index.php?controller=auth&action=account', 'Erreur lors de l\'upload de la photo de profil', 'error');
+                }
+            }
+
+            $updateData = [
+                'nom' => $nom,
+                'prenom' => $prenom,
+                'adresse' => $adresse,
+                'phone' => $phone,
+            ];
+
+            // Gestion de l'avatar : nouveau fichier, ou suppression demandée
+            if ($avatarPath !== null) {
+                $updateData['avatar'] = $avatarPath;
+            } elseif ($deleteAvatar) {
+                // Supprimer l'ancien fichier si présent
+                if (!empty($user['avatar'])) {
+                    require_once HELPERS_PATH . '/ImageUpload.php';
+                    $uploader = new ImageUpload();
+                    $filename = basename($user['avatar']);
+                    $uploader->deleteImage($filename);
+                }
+                $updateData['avatar'] = '';
+            }
+
+            $userModel->updateProfile($userId, $updateData);
+            $_SESSION['username'] = trim($prenom . ' ' . $nom) ?: ($user['email'] ?? '');
+            if ($avatarPath !== null) {
+                $_SESSION['avatar'] = $avatarPath;
+            } elseif ($deleteAvatar) {
+                $_SESSION['avatar'] = null;
+            }
+            redirect('/index.php?controller=auth&action=account', 'Profil mis à jour');
+        }
+        $pageTitle = 'Mon compte';
+        require_once VIEWS_PATH . '/auth/account.php';
+    }
+
     public function logout() {
         session_destroy();
         header('Location: ' . BASE_URL . '/index.php?controller=auth&action=login');

@@ -80,6 +80,66 @@
         </div>
     </div>
 
+    <?php if (!empty($routeTests)): ?>
+        <div class="route-tests">
+            <h3>🧪 Tests de pages principales</h3>
+            <table class="route-table">
+                <thead>
+                    <tr>
+                        <th>Page</th>
+                        <th>URL</th>
+                        <th>Statut HTTP</th>
+                        <th>Résultat</th>
+                        <th>Temps</th>
+                        <th>Message PHP (aperçu)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($routeTests as $route): ?>
+                        <?php
+                            $rowClass = '';
+                            if (!empty($route['skipped'])) {
+                                $rowClass = 'skipped';
+                            } elseif ($route['ok'] === true) {
+                                $rowClass = 'ok';
+                            } elseif ($route['ok'] === false) {
+                                $rowClass = 'fail';
+                            }
+                        ?>
+                        <tr class="<?php echo $rowClass; ?>">
+                            <td><?php echo htmlspecialchars($route['name']); ?></td>
+                            <td><code><?php echo htmlspecialchars($route['url']); ?></code></td>
+                            <td><?php echo $route['status_code'] ?? '—'; ?></td>
+                            <td>
+                                <?php if (!empty($route['skipped'])): ?>
+                                    <span class="badge badge-muted">Non testé</span>
+                                <?php elseif ($route['ok']): ?>
+                                    <span class="badge badge-success">OK</span>
+                                <?php else: ?>
+                                    <span class="badge badge-error">Erreur</span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php if (!empty($route['duration_ms'])): ?>
+                                    <?php echo (int)$route['duration_ms']; ?> ms
+                                <?php else: ?>
+                                    —
+                                <?php endif; ?>
+                            </td>
+                            <td class="route-message">
+                                <?php if (!empty($route['error_snippet'])): ?>
+                                    <code><?php echo htmlspecialchars($route['error_snippet']); ?><?php echo strlen($route['error_snippet']) >= 300 ? '…' : ''; ?></code>
+                                <?php else: ?>
+                                    —
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php endif; ?>
+
     <div class="debug-info">
         <h3>📊 Informations Système</h3>
         <div class="info-grid">
@@ -287,6 +347,74 @@
 
 .info-item {
     color: var(--muted);
+}
+
+.route-tests {
+    margin: 30px 0;
+    padding: 25px;
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+
+.route-tests h3 {
+    color: var(--text);
+    margin: 0 0 16px 0;
+}
+
+.route-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.route-table th,
+.route-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    vertical-align: middle;
+}
+
+.route-table .route-message {
+    max-width: 360px;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.route-table tr.ok {
+    background: rgba(16,185,129,0.05);
+}
+
+.route-table tr.fail {
+    background: rgba(239,68,68,0.05);
+}
+
+.route-table tr.skipped {
+    background: rgba(148,163,184,0.05);
+}
+
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge-success {
+    background: rgba(16,185,129,0.15);
+    color: #10b981;
+}
+
+.badge-error {
+    background: rgba(239,68,68,0.15);
+    color: #ef4444;
+}
+
+.badge-muted {
+    background: rgba(148,163,184,0.15);
+    color: #9ca3af;
 }
 </style>
 

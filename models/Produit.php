@@ -9,10 +9,12 @@ class Produit {
     }
 
     public function getAll() {
+        $this->ensureAvatarColumn();
         $stmt = $this->db->query(
-            "SELECT p.*, v.nom_entreprise, c.lib AS categorie
+            "SELECT p.*, v.nom_entreprise, c.lib AS categorie, u.avatar, u.prenom, u.nom
              FROM Produit p
              LEFT JOIN Vendeur v ON p.id_vendeur = v.id_user
+             LEFT JOIN Utilisateur u ON p.id_vendeur = u.id_user
              LEFT JOIN Categorie c ON p.id_categorie = c.id_categorie
              ORDER BY p.created_at DESC"
         );
@@ -20,10 +22,12 @@ class Produit {
     }
 
     public function findById(int $id) {
+        $this->ensureAvatarColumn();
         $stmt = $this->db->prepare(
-            "SELECT p.*, v.nom_entreprise, c.lib AS categorie
+            "SELECT p.*, v.nom_entreprise, c.lib AS categorie, u.avatar, u.prenom, u.nom
              FROM Produit p
              LEFT JOIN Vendeur v ON p.id_vendeur = v.id_user
+             LEFT JOIN Utilisateur u ON p.id_vendeur = u.id_user
              LEFT JOIN Categorie c ON p.id_categorie = c.id_categorie
              WHERE p.id_produit = ?"
         );
@@ -110,10 +114,12 @@ class Produit {
      * Obtenir les produits par catégorie
      */
     public function getByCategory(int $categoryId) {
+        $this->ensureAvatarColumn();
         $stmt = $this->db->prepare(
-            "SELECT p.*, v.nom_entreprise, c.lib AS categorie
+            "SELECT p.*, v.nom_entreprise, c.lib AS categorie, u.avatar, u.prenom, u.nom
              FROM Produit p
              LEFT JOIN Vendeur v ON p.id_vendeur = v.id_user
+             LEFT JOIN Utilisateur u ON p.id_vendeur = u.id_user
              LEFT JOIN Categorie c ON p.id_categorie = c.id_categorie
              WHERE p.id_categorie = ?
              ORDER BY p.created_at DESC"
@@ -126,10 +132,12 @@ class Produit {
      * Obtenir les produits d'un vendeur
      */
     public function getByVendor(int $vendorId) {
+        $this->ensureAvatarColumn();
         $stmt = $this->db->prepare(
-            "SELECT p.*, v.nom_entreprise, c.lib AS categorie
+            "SELECT p.*, v.nom_entreprise, c.lib AS categorie, u.avatar, u.prenom, u.nom
              FROM Produit p
              LEFT JOIN Vendeur v ON p.id_vendeur = v.id_user
+             LEFT JOIN Utilisateur u ON p.id_vendeur = u.id_user
              LEFT JOIN Categorie c ON p.id_categorie = c.id_categorie
              WHERE p.id_vendeur = ?
              ORDER BY p.created_at DESC"
@@ -290,7 +298,8 @@ class Produit {
      * Recherche avancée de produits avec filtres
      */
     public function searchProducts($search = '', $category = '', $priceMin = '', $priceMax = '') {
-        $sql = "SELECT p.*, v.nom_entreprise, c.lib AS categorie, u.nom, u.prenom
+        $this->ensureAvatarColumn();
+        $sql = "SELECT p.*, v.nom_entreprise, c.lib AS categorie, u.nom, u.prenom, u.avatar
                 FROM Produit p
                 LEFT JOIN Vendeur v ON p.id_vendeur = v.id_user
                 LEFT JOIN Utilisateur u ON p.id_vendeur = u.id_user
@@ -332,6 +341,21 @@ class Produit {
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * S'assurer que la colonne avatar existe dans Utilisateur avant de la sélectionner
+     */
+    private function ensureAvatarColumn() {
+        try {
+            $stmt = $this->db->prepare("SHOW COLUMNS FROM Utilisateur LIKE 'avatar'");
+            $stmt->execute();
+            if ($stmt->rowCount() === 0) {
+                $this->db->exec("ALTER TABLE Utilisateur ADD COLUMN avatar VARCHAR(255) NULL AFTER phone");
+            }
+        } catch (Exception $e) {
+            // En cas d'erreur, ne pas bloquer le rendu de la page
+        }
     }
 }
 

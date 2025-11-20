@@ -32,14 +32,44 @@
             <p>Historique de vos achats effectués</p>
         </div>
         
-        <div class="empty-state">
-            <i class="fas fa-shopping-bag"></i>
-            <h3>Aucun achat pour le moment</h3>
-            <p>Commencez à explorer nos produits !</p>
-            <a href="<?php echo BASE_URL; ?>/index.php?controller=product&action=index" class="btn">
-                <i class="fas fa-store"></i> Voir les produits
-            </a>
-        </div>
+        <?php if (empty($purchases)): ?>
+            <div class="empty-state">
+                <i class="fas fa-shopping-bag"></i>
+                <h3>Aucun achat pour le moment</h3>
+                <p>Commencez à explorer nos produits !</p>
+                <a href="<?php echo BASE_URL; ?>/index.php?controller=product&action=index" class="btn">
+                    <i class="fas fa-store"></i> Voir les produits
+                </a>
+            </div>
+        <?php else: ?>
+            <div class="purchases-grid">
+                <?php foreach ($purchases as $purchase): ?>
+                    <div class="purchase-card">
+                        <div class="purchase-info">
+                            <h3><?php echo htmlspecialchars($purchase['description'] ?? 'Produit'); ?></h3>
+                            <div class="purchase-details">
+                                <div class="detail-item">
+                                    <strong>Montant:</strong>
+                                    <span class="price"><?php echo number_format((float)($purchase['amount'] ?? 0), 2, ',', ' '); ?> €</span>
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Date:</strong>
+                                    <span><?php echo !empty($purchase['created_at']) ? date('d/m/Y à H:i', strtotime($purchase['created_at'])) : ''; ?></span>
+                                </div>
+                            </div>
+                            <div class="purchase-actions">
+                                <a href="<?php echo BASE_URL; ?>/index.php?controller=product&action=show&id=<?php echo (int)($purchase['product_id'] ?? 0); ?>" class="btn btn-sm">
+                                    <i class="fas fa-eye"></i> Voir le produit
+                                </a>
+                                <a href="<?php echo BASE_URL; ?>/index.php?controller=acquisition&action=invoice&id=<?php echo (int)($purchase['id'] ?? 0); ?>" class="btn btn-sm btn-success">
+                                    <i class="fas fa-file-invoice"></i> Facture PDF
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
     </div>
 
     <!-- Onglet Précommandes -->
@@ -110,9 +140,9 @@
                                     <i class="fas fa-eye"></i> Voir détails
                                 </a>
                                 <?php if ($prePurchase['status'] === 'pending'): ?>
-                                    <form method="POST" style="display: inline;" onsubmit="return confirm('Annuler cette précommande ?');">
+                                    <form method="POST" action="<?php echo BASE_URL; ?>/index.php?controller=acquisition&amp;action=cancelPrePurchase" style="display: inline;" onsubmit="return confirm('Annuler cette précommande ?');">
                                         <input type="hidden" name="id" value="<?php echo (int)$prePurchase['id']; ?>">
-                                        <button type="submit" name="action" value="cancel" class="btn btn-danger btn-sm">
+                                        <button type="submit" class="btn btn-danger btn-sm">
                                             <i class="fas fa-times"></i> Annuler
                                         </button>
                                     </form>
@@ -353,7 +383,8 @@
 
 .preorders-grid,
 .auctions-grid,
-.sales-grid {
+.sales-grid,
+.purchases-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     gap: 20px;

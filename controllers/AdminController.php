@@ -52,6 +52,7 @@ class AdminController {
         $testResults = [];
         $errors = [];
         $warnings = [];
+        $routeTests = [];
         
         // Fonction pour ajouter un résultat de test
         function addTestResult($category, $test, $status, $message = '') {
@@ -128,7 +129,126 @@ class AdminController {
                 addTestResult('Système de fichiers', $description, 'error', 'Dossier manquant');
             }
         }
-        
+
+        // Test des routes principales (pages clés du site)
+        $routesToTest = [
+            [
+                'name' => "Page d'accueil produits",
+                'url' => BASE_URL . '/index.php?controller=product&action=index',
+            ],
+            [
+                'name' => 'Page de connexion',
+                'url' => BASE_URL . '/index.php?controller=auth&action=login',
+            ],
+            [
+                'name' => 'Mes acquisitions',
+                'url' => BASE_URL . '/index.php?controller=acquisition&action=index',
+            ],
+            [
+                'name' => 'Tableau de bord admin',
+                'url' => BASE_URL . '/index.php?controller=admin&action=index',
+            ],
+            [
+                'name' => 'Gestion des annonces (admin)',
+                'url' => BASE_URL . '/index.php?controller=admin&action=ads',
+            ],
+            [
+                'name' => 'Gestion des vendeurs (admin)',
+                'url' => BASE_URL . '/index.php?controller=admin&action=vendors',
+            ],
+            [
+                'name' => 'Paramètres du site (admin)',
+                'url' => BASE_URL . '/index.php?controller=admin&action=settings',
+            ],
+        ];
+
+        $sessionId = session_id();
+        $sessionName = session_name();
+        $headers = [];
+        if ($sessionId && $sessionName) {
+            $headers[] = 'Cookie: ' . $sessionName . '=' . $sessionId;
+        }
+
+        $allowUrlFopen = filter_var(ini_get('allow_url_fopen'), FILTER_VALIDATE_BOOLEAN);
+        $hasCurl = function_exists('curl_init');
+        $httpTestingAvailable = $hasCurl || $allowUrlFopen;
+
+        foreach ($routesToTest as $route) {
+            if (!$httpTestingAvailable) {
+                // Impossible de tester les routes HTTP sur ce serveur
+                $routeTests[] = [
+                    'name' => $route['name'],
+                    'url' => $route['url'],
+                    'status_code' => null,
+                    'ok' => null,
+                    'duration_ms' => null,
+                    'skipped' => true,
+                    'error_snippet' => null,
+                ];
+                continue;
+            }
+
+            $start = microtime(true);
+            $statusCode = null;
+            $content = false;
+
+            if ($hasCurl) {
+                // Utiliser cURL si disponible (plus fiable)
+                $ch = curl_init($route['url']);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+                if (!empty($headers)) {
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+                }
+                $content = curl_exec($ch);
+                if ($content !== false) {
+                    $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                }
+                curl_close($ch);
+            } elseif ($allowUrlFopen) {
+                // Fallback sur file_get_contents
+                $context = stream_context_create([
+                    'http' => [
+                        'method' => 'GET',
+                        'header' => implode("\r\n", $headers),
+                        'ignore_errors' => true,
+                        'timeout' => 3,
+                    ],
+                ]);
+                $content = @file_get_contents($route['url'], false, $context);
+                if (isset($http_response_header[0]) && preg_match('#HTTP/\\S+\\s(\\d{3})#', $http_response_header[0], $matches)) {
+                    $statusCode = (int) $matches[1];
+                }
+            }
+
+            $durationMs = (int) ((microtime(true) - $start) * 1000);
+            $ok = $content !== false && $statusCode !== null && $statusCode < 400;
+
+            // Extraire un court message d'erreur PHP éventuel
+            $errorSnippet = null;
+            if (!$ok && is_string($content) && $content !== '') {
+                $plain = trim(strip_tags($content));
+                if ($plain !== '') {
+                    if (function_exists('mb_substr')) {
+                        $errorSnippet = mb_substr($plain, 0, 300);
+                    } else {
+                        $errorSnippet = substr($plain, 0, 300);
+                    }
+                }
+            }
+
+            $routeTests[] = [
+                'name' => $route['name'],
+                'url' => $route['url'],
+                'status_code' => $statusCode,
+                'ok' => $ok,
+                'duration_ms' => $durationMs,
+                'skipped' => false,
+                'error_snippet' => $errorSnippet,
+            ];
+        }
+
         $pageTitle = 'Debug Système';
         require_once VIEWS_PATH . '/admin/debug.php';
     }
@@ -366,6 +486,87 @@ class AdminController {
     }
 
     /**
+     * Création rapide d'un utilisateur par un administrateur
+     * Ne modifie pas la session courante (l'admin reste connecté)
+     */
+    public function createUser() {
+        requireAdmin();
+
+        $error = '';
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            require_once MODELS_PATH . '/Utilisateur.php';
+            require_once MODELS_PATH . '/Client.php';
+            require_once MODELS_PATH . '/Vendeur.php';
+
+            $nom = sanitize($_POST['nom'] ?? '');
+            $prenom = sanitize($_POST['prenom'] ?? '');
+            $adresse = sanitize($_POST['adresse'] ?? '');
+            $phone = sanitize($_POST['phone'] ?? '');
+            $email = sanitize($_POST['email'] ?? '');
+            $password = $_POST['password'] ?? '';
+            $passwordConfirm = $_POST['password_confirm'] ?? '';
+            $role = sanitize($_POST['role'] ?? 'client'); // client | vendeur
+
+            // Validations de base (reprennent la logique d'inscription)
+            if (empty($nom) || empty($prenom) || empty($email) || empty($password)) {
+                $error = 'Veuillez remplir tous les champs obligatoires';
+            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $error = 'Adresse email invalide';
+            } elseif ($password !== $passwordConfirm) {
+                $error = 'Les mots de passe ne correspondent pas';
+            } elseif (strlen($password) < 6) {
+                $error = 'Le mot de passe doit contenir au moins 6 caractères';
+            } elseif (!preg_match('/^(?=.*[a-zA-Z])(?=.*\d)/', $password)) {
+                $error = 'Le mot de passe doit contenir au moins une lettre et un chiffre';
+            } else {
+                $utilisateur = new Utilisateur();
+                $exists = $utilisateur->findByEmail($email);
+                if ($exists) {
+                    $error = 'Un compte existe déjà avec cet email';
+                } else {
+                    $hashed = password_hash($password, PASSWORD_DEFAULT);
+                    $created = $utilisateur->create([
+                        'nom' => $nom,
+                        'prenom' => $prenom,
+                        'adresse' => $adresse,
+                        'phone' => $phone,
+                        'email' => $email,
+                        'motdepasse' => $hashed,
+                    ]);
+
+                    if ($created) {
+                        // Récupérer l'utilisateur créé
+                        $user = $utilisateur->findByEmail($email);
+                        $userId = (int)$user['id_user'];
+
+                        if ($role === 'vendeur') {
+                            $vendeur = new Vendeur();
+                            $vendeur->create($userId, [
+                                'nom_entreprise' => sanitize($_POST['nom_entreprise'] ?? ''),
+                                'siret' => sanitize($_POST['siret'] ?? ''),
+                                'adresse_entreprise' => sanitize($_POST['adresse_entreprise'] ?? ''),
+                                'email_pro' => sanitize($_POST['email_pro'] ?? ''),
+                            ]);
+                        } else {
+                            $client = new Client();
+                            $client->create($userId);
+                        }
+
+                        // Ne pas connecter le nouvel utilisateur, rester sur l'admin
+                        redirect('/index.php?controller=admin&action=vendors', 'Utilisateur créé avec succès');
+                    } else {
+                        $error = "Erreur lors de la création de l'utilisateur";
+                    }
+                }
+            }
+        }
+
+        $pageTitle = 'Créer un utilisateur';
+        require_once VIEWS_PATH . '/admin/create_user.php';
+    }
+
+    /**
      * Gestion des taxes
      */
     public function settings() {
@@ -433,6 +634,52 @@ class AdminController {
         
         $pageTitle = 'Gestion des Taxes';
         require_once VIEWS_PATH . '/admin/settings.php';
+    }
+
+    /**
+     * Centre de tickets pour les administrateurs
+     * Permet de voir et traiter les tickets envoyés par les utilisateurs/vendeurs
+     */
+    public function tickets() {
+        requireAdmin();
+
+        require_once MODELS_PATH . '/Ticket.php';
+        $ticketModel = new Ticket();
+
+        $message = '';
+        $error = '';
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $ticketId = (int)($_POST['ticket_id'] ?? 0);
+            $action = $_POST['action'] ?? '';
+
+            if ($ticketId <= 0) {
+                $error = 'Ticket invalide';
+            } else {
+                if ($action === 'answer') {
+                    $adminResponse = trim(sanitize($_POST['admin_response'] ?? ''));
+                    if ($adminResponse === '') {
+                        $error = 'La réponse ne peut pas être vide';
+                    } else {
+                        if ($ticketModel->answer($ticketId, $adminResponse)) {
+                            $message = 'Réponse envoyée';
+                        } else {
+                            $error = 'Erreur lors de l\'enregistrement de la réponse';
+                        }
+                    }
+                } elseif ($action === 'close') {
+                    if ($ticketModel->close($ticketId)) {
+                        $message = 'Ticket fermé';
+                    } else {
+                        $error = 'Erreur lors de la fermeture du ticket';
+                    }
+                }
+            }
+        }
+
+        $tickets = $ticketModel->getAll();
+        $pageTitle = 'Tickets support';
+        require_once VIEWS_PATH . '/admin/tickets.php';
     }
 }
 

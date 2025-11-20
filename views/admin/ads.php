@@ -3,7 +3,12 @@
 <?php require VIEWS_PATH . '/layouts/navbar.php'; ?>
 
 <main class="container">
-    <h1>Gestion des Annonces</h1>
+    <div class="admin-header">
+        <h1>Gestion des Annonces</h1>
+        <a href="<?php echo BASE_URL; ?>/index.php?controller=product&action=create" class="btn btn-success">
+            <i class="fas fa-plus"></i> Ajouter une annonce
+        </a>
+    </div>
     
     <?php if (!empty($message)): ?>
         <div class="alert success"><?php echo htmlspecialchars($message); ?></div>
@@ -181,6 +186,25 @@
 </div>
 
 <style>
+.admin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 2rem 0 1.5rem;
+}
+
+.admin-header h1 {
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .admin-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
 .admin-section {
     margin: 2rem 0;
 }

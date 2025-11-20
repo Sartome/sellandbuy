@@ -62,6 +62,37 @@
   });
 })();
 
+// Account dropdown functionality
+(function(){
+  const accountMenu = document.querySelector('.account-menu');
+  const accountToggle = document.querySelector('.account-toggle');
+
+  if (!accountMenu || !accountToggle) {
+    return;
+  }
+
+  // Toggle dropdown on button click
+  accountToggle.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    accountMenu.classList.toggle('open');
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!accountMenu.contains(e.target)) {
+      accountMenu.classList.remove('open');
+    }
+  });
+
+  // Close dropdown on escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      accountMenu.classList.remove('open');
+    }
+  });
+})();
+
 // Enhanced Image Lazy Loading
 (function(){
   const images = document.querySelectorAll('img[data-src]');

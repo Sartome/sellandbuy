@@ -130,11 +130,12 @@ class Vendeur {
         try {
             $this->db->beginTransaction();
             
-            // 1. Supprimer les enchères
-            $stmt = $this->db->prepare("DELETE FROM auctions WHERE id_vendeur = ?");
+            // 1. Supprimer les enchères liées aux produits de ce vendeur
+            // La table auctions n'a pas de colonne id_vendeur, seulement id_produit
+            $stmt = $this->db->prepare("DELETE FROM auctions WHERE id_produit IN (SELECT id_produit FROM Produit WHERE id_vendeur = ?)");
             $stmt->execute([$vendorId]);
             
-            // 2. Supprimer les produits
+            // 2. Supprimer les produits du vendeur
             $stmt = $this->db->prepare("DELETE FROM Produit WHERE id_vendeur = ?");
             $stmt->execute([$vendorId]);
             

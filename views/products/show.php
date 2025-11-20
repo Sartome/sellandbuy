@@ -1,7 +1,23 @@
 <?php 
 require_once MODELS_PATH . '/ProduitImage.php';
+require_once MODELS_PATH . '/Review.php';
+require_once MODELS_PATH . '/Sale.php';
+
 $produitImageModel = new ProduitImage();
 $productImages = $produitImageModel->getImagesByProduct((int)$product['id_produit']);
+
+$reviewModel = new Review();
+$reviews = $reviewModel->getByProduct((int)$product['id_produit']);
+$averageRating = $reviewModel->getAverageForProduct((int)$product['id_produit']);
+
+$userCanReview = false;
+$userHasReviewed = false;
+if (!empty($_SESSION['user_id'])) {
+    $saleModel = new Sale();
+    $userId = (int)$_SESSION['user_id'];
+    $userCanReview = $saleModel->userHasPurchasedProduct($userId, (int)$product['id_produit']);
+    $userHasReviewed = $reviewModel->userHasReviewed((int)$product['id_produit'], $userId);
+}
 ?>
 <?php require VIEWS_PATH . '/layouts/header.php'; ?>
 <?php require VIEWS_PATH . '/layouts/navbar.php'; ?>
@@ -86,10 +102,30 @@ $productImages = $produitImageModel->getImagesByProduct((int)$product['id_produi
                 </div>
             </div>
 
+            <div class="review-summary">
+                <?php if ($averageRating > 0): ?>
+                    <?php $rounded = (int)round($averageRating); ?>
+                    <span class="stars">
+                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                            <?php echo $i <= $rounded ? '★' : '☆'; ?>
+                        <?php endfor; ?>
+                    </span>
+                    <span class="review-count">
+                        (<?php echo count($reviews); ?> avis, moyenne <?php echo number_format($averageRating, 1, ',', ' '); ?>/5)
+                    </span>
+                <?php else: ?>
+                    <span class="review-count">Aucun avis pour le moment</span>
+                <?php endif; ?>
+            </div>
+
             <div class="seller-info">
                 <div class="seller-card">
                     <div class="seller-avatar">
-                        <i class="fas fa-store"></i>
+                        <?php if (!empty($product['avatar'])): ?>
+                            <img src="<?php echo htmlspecialchars($product['avatar']); ?>" alt="Photo du vendeur">
+                        <?php else: ?>
+                            <i class="fas fa-store"></i>
+                        <?php endif; ?>
                     </div>
                     <div class="seller-details">
                         <h3><?php echo htmlspecialchars($product['nom_entreprise'] ?? 'Vendeur'); ?></h3>
@@ -148,6 +184,72 @@ $productImages = $produitImageModel->getImagesByProduct((int)$product['id_produi
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="product-reviews">
+        <h2>Avis des acheteurs</h2>
+
+        <?php if (!empty($reviews)): ?>
+            <ul class="review-list">
+                <?php foreach ($reviews as $review): ?>
+                    <li class="review-item">
+                        <div class="review-header">
+                            <?php 
+                                $name = trim(($review['prenom'] ?? '') . ' ' . ($review['nom'] ?? ''));
+                                if ($name === '') {
+                                    $name = 'Client';
+                                }
+                            ?>
+                            <strong><?php echo htmlspecialchars($name); ?></strong>
+                            <span class="stars">
+                                <?php for ($i = 1; $i <= 5; $i++): ?>
+                                    <?php echo $i <= (int)$review['rating'] ? '★' : '☆'; ?>
+                                <?php endfor; ?>
+                            </span>
+                            <?php if (!empty($review['created_at'])): ?>
+                                <span class="review-date"><?php echo date('d/m/Y', strtotime($review['created_at'])); ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <?php if (!empty($review['comment'])): ?>
+                            <p class="review-comment"><?php echo nl2br(htmlspecialchars($review['comment'])); ?></p>
+                        <?php endif; ?>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        <?php else: ?>
+            <p class="no-reviews">Aucun avis pour l'instant.</p>
+        <?php endif; ?>
+
+        <?php if ($userCanReview): ?>
+            <div class="review-form-wrapper">
+                <?php if ($userHasReviewed): ?>
+                    <p>Vous avez déjà laissé un avis. Vous pouvez le mettre à jour ci-dessous.</p>
+                <?php endif; ?>
+                <form method="post" action="<?php echo BASE_URL; ?>/index.php?controller=review&action=create" class="review-form">
+                    <input type="hidden" name="product_id" value="<?php echo (int)$product['id_produit']; ?>">
+                    <div class="form-group">
+                        <label>Votre note</label>
+                        <div class="rating-input">
+                            <?php for ($i = 5; $i >= 1; $i--): ?>
+                                <input type="radio" id="star-<?php echo $i; ?>" name="rating" value="<?php echo $i; ?>" <?php echo $i === 5 ? 'checked' : ''; ?>>
+                                <label for="star-<?php echo $i; ?>">★</label>
+                            <?php endfor; ?>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Votre commentaire</label>
+                        <textarea name="comment" rows="3" placeholder="Partagez votre expérience..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-star"></i> Envoyer mon avis
+                    </button>
+                </form>
+            </div>
+        <?php elseif (!empty($_SESSION['user_id'])): ?>
+            <p class="no-review-permission">Vous devez acheter ce produit pour laisser un avis.</p>
+        <?php else: ?>
+            <p class="no-review-permission">Connectez-vous pour laisser un avis.</p>
+        <?php endif; ?>
     </div>
 
     <!-- Lightbox pour les images -->

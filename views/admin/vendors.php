@@ -4,7 +4,12 @@
 
 <main class="container">
     <div class="admin-section">
-        <h1>👥 Gestion des Vendeurs et Utilisateurs</h1>
+        <div class="admin-header">
+            <h1>👥 Gestion des Vendeurs et Utilisateurs</h1>
+            <a href="<?php echo BASE_URL; ?>/index.php?controller=admin&action=createUser" class="btn btn-success">
+                <i class="fas fa-user-plus"></i> Créer un utilisateur
+            </a>
+        </div>
         <p>Gérez tous les utilisateurs et vendeurs de votre marketplace</p>
         
         <!-- Barre de recherche -->
@@ -160,7 +165,11 @@
                                 <td><?php echo htmlspecialchars($user['email']); ?></td>
                                 <td><?php echo htmlspecialchars($user['phone'] ?? 'N/A'); ?></td>
                                 <td>
-                                    <?php if ($user['type'] === 'Vendeur'): ?>
+                                    <?php if ($user['type'] === 'Administrateur'): ?>
+                                        <span class="badge certified">
+                                            <i class="fas fa-shield-alt"></i> Administrateur
+                                        </span>
+                                    <?php elseif ($user['type'] === 'Vendeur'): ?>
                                         <span class="badge certified">
                                             <i class="fas fa-store"></i> Vendeur
                                         </span>
@@ -193,6 +202,25 @@
 </main>
 
 <style>
+.admin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 2rem 0 1.5rem;
+}
+
+.admin-header h1 {
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .admin-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
 .search-section {
     background: var(--card);
     padding: 20px;
