@@ -1,0 +1,113 @@
+1. Présentation de l'Entreprise et du Contexte
+1.1 L'Entreprise
+Sell & Buy est une marketplace développée pour la vente en ligne de produits divers. Le projet vise à stabiliser, compléter et améliorer le site existant (MVC PHP), enrichir la gestion administrative et fournir des outils d'observabilité (diagramme ER, tableaux d'administration).
+
+1.2 Le Contexte
+Le dépôt contient une base de données `vente_groupe.sql` et un code PHP partiellement complet. Certaines tables et flux (factures, signalements, blocage/déblocage, préventes) nécessitent une intégration MVC complète. L'objectif est d'avoir un jeu de fonctionnalités administratives robustes, testées et documentées.
+
+2. Objectifs et Cibles
+2.1 Objectifs du projet
+Objectif principal : Livrer un module administrateur complet pour la base `vente_groupe` et améliorer la qualité du code (tests, docs, sécurité).
+Objectifs secondaires : Améliorer l'expérience produit (upload images, validations), ajouter la génération d'un diagramme ER exportable, et fournir des scripts d'initialisation reproductibles.
+
+2.2 La Cible (Personas)
+Cœur de cible : Administrateurs et gestionnaires du marketplace.
+Utilisateurs secondaires : Vendeurs et clients (avec interfaces adaptées pour signaler un produit ou consulter factures).
+
+3. Périmètre du Projet (Scope)
+Inclus :
+- Implémentation des modèles manquants (Facture, Bloquer, Debloquer, Signaler, Participation) et leurs controllers/views.
+- Pages d'administration : liste et gestion des factures, signalements, blocage/déblocage vendeurs, visualisation ER.
+- Générateur ER (SVG) avec option d'enregistrement dans `database/er_diagram.svg` et bouton de téléchargement.
+- Scripts d'initialisation (`admin/init_vente_groupe.php`).
+- Tests unitaires basiques (PHPUnit) pour helpers et modèles principaux.
+- Mise à jour de la documentation et guide d'implémentation.
+Exclus :
+- Integrations externes (paiement, API tierces) sauf si spécifiées ultérieurement.
+- Refonte graphique globale du front-end.
+
+4. Description Fonctionnelle (Le "Quoi")
+Priorités et fonctionnalités :
+- P1 (Indispensable)
+  - Gestion des factures : création (PDF), listing, téléchargement, suppression.
+  - Gestion des signalements : signaler produit (utilisateur), liste admin, suppression.
+  - Blocage/déblocage vendeurs : interface admin + historique.
+  - Générateur ER : lecture du schéma via information_schema et rendu SVG exportable.
+- P2 (Important)
+  - Automatisation optionnelle : génération de facture PDF lors d'un achat.
+  - Tests étendus : coverage pour modèles nouvellement ajoutés.
+- P3 (Optionnel)
+  - Export PNG du diagramme (via Imagick / rsvg-convert si disponible).
+  - Rapports analytiques simples sur factures et signalements.
+
+5. Livrables
+- Code source pour les modèles, controllers et vues liés à `vente_groupe`.
+- `admin/init_vente_groupe.php` et `database/er_diagram.svg` (après sauvegarde via UI).
+- Pages admin : Factures, Signalements, ER Diagram.
+- Tests unitaires sous `tests/Unit`.
+- Mise à jour `README.md` et `IMPLEMENTATION_GUIDE.md` avec instructions d'initialisation.
+- Documentation courte pour déployer et exécuter les scripts.
+
+6. Planning et Jalons
+Estimation de délai : 3–6 semaines selon portée finale.
+- J0 – J2 : Finalisation du périmètre, préparation des accès et environnement.
+- J3 – J8 : Implémentation des modèles et scripts d'init.
+- J9 – J14 : Pages d'administration (factures, signalements) et ER diagram.
+- J15 – J20 : Tests, documentation, et corrections QA.
+- J21 – J30 : Révisions finales, déploiement et acceptation.
+
+7. Critères d'acceptation
+- Les pages admin affichent correctement les données et permettent les actions CRUD attendues.
+- ER Diagram s'affiche, peut être enregistré en `database/er_diagram.svg` et téléchargé.
+- Tests unitaires fournis s'exécutent sans erreurs.
+- La documentation contient les étapes d'installation et d'initialisation.
+
+8. Hypothèses et Contraintes
+- Environnement PHP >= 7.4 et MySQL accessible.
+- Imagick n'est pas garanti ; PNG export sera optionnel selon disponibilité des outils.
+- Les accès de staging/DB seront fournis si des tests sur un environnement réel sont requis.
+
+9. Risques et Mesures d'atténuation
+- Risque : divergences entre schéma SQL et base en production → Mitigation : scripts `IF NOT EXISTS` et revues de schéma.
+- Risque : absence d'extensions serveur (Imagick) → Mitigation : garder SVG principal et proposer instructions d'installation.
+- Risque : demande de fonctionnalités hors périmètre → Mitigation : gestion des changements via demande formelle (Change Request).
+
+10. Estimation budgétaire (exemple)
+- Tarif horaire : à définir (ex: €80/h)
+- Estimation principale (scope de base) : 40 heures → €3,200 (exemple)
+- Travaux optionnels (PNG export, tests avancés) : dépenses additionnelles à estimer sur demande.
+
+11. Modalités de paiement (exemple)
+- 30% à la signature du SOW
+- 40% à la livraison de la fonctionnalité clé (admin + ER)
+- 30% à l'acceptation finale
+
+12. Plan de gestion des modifications
+Toute modification de périmètre fera l'objet d'un Change Request détaillant impact sur coût et délai, et nécessitera approbation écrite.
+
+13. Communication et Points de contact
+- Réunions hebdomadaires de suivi (ou cadence convenue)
+- Canaux : Email, tracker d'incidents/tickets, réunion de démonstration à la fin de chaque jalon
+- Contact client : [Nom & email]
+- Contact dev : [Nom & email]
+
+14. Acceptation
+En signant ci-dessous, le client et le fournisseur approuvent ce SOW et autorisent le démarrage des travaux selon les termes définis :
+
+Client : _________________________  Date: __________
+
+Fournisseur : _____________________  Date: __________
+
+15. Annexes (optionnel)
+- Liste détaillée des tables (cf. `database/vente_groupe.sql`)
+- Procédure d'initialisation : `php admin/init_vente_groupe.php`
+
+---
+S'il vous convient, je peux :
+- Ajouter un tableau de coûts détaillés par tâche (ligne par ligne),
+- Générer un PDF du SOW et l'enregistrer dans `database/SOW_v1.0.pdf`,
+- Créer les tickets (issues) correspondant aux jalons et tâches.
+
+Veuillez indiquer si vous souhaitez que je applique l'une de ces actions maintenant.
+
+

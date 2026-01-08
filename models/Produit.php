@@ -39,13 +39,26 @@ class Produit {
         // Vérifier si la colonne quantity existe
         $hasQuantityColumn = $this->hasQuantityColumn();
         
+        // Calculate TTC price from HT if HT is provided
+        $prix_ttc = $data['prix'] ?? 0;
+        $prix_ht = $data['prix_ht'] ?? 0;
+        $taux_tva = $data['taux_tva'] ?? 20; // Default to 20%
+        
+        if (!empty($prix_ht)) {
+            $prix_ttc = $prix_ht * (1 + ($taux_tva / 100));
+        } elseif (!empty($prix_ttc) && $taux_tva > 0) {
+            $prix_ht = $prix_ttc / (1 + ($taux_tva / 100));
+        }
+        
         if ($hasQuantityColumn) {
             $stmt = $this->db->prepare(
-                "INSERT INTO Produit (description, prix, image, image_alt, image_size, image_width, image_height, id_vendeur, id_categorie, quantity) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                "INSERT INTO Produit (description, prix, prix_ht, taux_tva, image, image_alt, image_size, image_width, image_height, id_vendeur, id_categorie, quantity) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             );
             return $stmt->execute([
                 $data['description'],
-                $data['prix'],
+                $prix_ttc, // Store TTC price
+                $prix_ht,
+                $taux_tva,
                 $data['image'] ?? null,
                 $data['image_alt'] ?? null,
                 $data['image_size'] ?? null,
@@ -57,11 +70,13 @@ class Produit {
             ]);
         } else {
             $stmt = $this->db->prepare(
-                "INSERT INTO Produit (description, prix, image, image_alt, image_size, image_width, image_height, id_vendeur, id_categorie) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                "INSERT INTO Produit (description, prix, prix_ht, taux_tva, image, image_alt, image_size, image_width, image_height, id_vendeur, id_categorie) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             );
             return $stmt->execute([
                 $data['description'],
-                $data['prix'],
+                $prix_ttc, // Store TTC price
+                $prix_ht,
+                $taux_tva,
                 $data['image'] ?? null,
                 $data['image_alt'] ?? null,
                 $data['image_size'] ?? null,
@@ -96,17 +111,28 @@ class Produit {
     /**
      * Rechercher des produits par terme
      */
-    public function search(string $term) {
-        $stmt = $this->db->prepare(
-            "SELECT p.*, v.nom_entreprise, c.lib AS categorie
+    public function search(string $term, ?int $categoryId = null) {
+        $sql = "SELECT p.*, v.nom_entreprise, c.lib AS categorie
              FROM Produit p
              LEFT JOIN Vendeur v ON p.id_vendeur = v.id_user
              LEFT JOIN Categorie c ON p.id_categorie = c.id_categorie
-             WHERE p.description LIKE ? OR v.nom_entreprise LIKE ? OR c.lib LIKE ?
-             ORDER BY p.created_at DESC"
-        );
+             WHERE (p.description LIKE ? OR v.nom_entreprise LIKE ? OR c.lib LIKE ?)";
+        
+        $params = [];
         $searchTerm = '%' . $term . '%';
-        $stmt->execute([$searchTerm, $searchTerm, $searchTerm]);
+        $params[] = $searchTerm;
+        $params[] = $searchTerm;
+        $params[] = $searchTerm;
+        
+        if ($categoryId !== null) {
+            $sql .= " AND p.id_categorie = ?";
+            $params[] = $categoryId;
+        }
+        
+        $sql .= " ORDER BY p.created_at DESC";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -269,7 +295,7 @@ class Produit {
         $values = [];
         
         foreach ($data as $field => $value) {
-            if (in_array($field, ['description', 'prix', 'id_categorie', 'image', 'image_alt', 'image_size', 'image_width', 'image_height', 'quantity'])) {
+            if (in_array($field, ['description', 'prix', 'prix_ht', 'taux_tva', 'id_categorie', 'image', 'image_alt', 'image_size', 'image_width', 'image_height', 'quantity'])) {
                 $fields[] = "$field = ?";
                 $values[] = $value;
             }
@@ -357,6 +383,7 @@ class Produit {
             // En cas d'erreur, ne pas bloquer le rendu de la page
         }
     }
+
 }
 
 

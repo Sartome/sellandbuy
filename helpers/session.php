@@ -10,8 +10,10 @@
  * Vérifie si un utilisateur est connecté
  * @return bool True si l'utilisateur est connecté
  */
-function isLoggedIn() {
-    return isset($_SESSION['user_id']);
+if (!function_exists('isLoggedIn')) {
+    function isLoggedIn() {
+        return isset($_SESSION['user_id']);
+    }
 }
 
 
@@ -19,9 +21,11 @@ function isLoggedIn() {
  * Redirige vers la page de connexion si l'utilisateur n'est pas connecté
  * Affiche un message d'erreur approprié
  */
-function requireLogin() {
-    if (!isLoggedIn()) {
-        redirect('/index.php?controller=auth&action=login', 'Veuillez vous connecter', 'error');
+if (!function_exists('requireLogin')) {
+    function requireLogin() {
+        if (!isLoggedIn()) {
+            redirect('/index.php?controller=auth&action=login', 'Veuillez vous connecter', 'error');
+        }
     }
 }
 
@@ -29,9 +33,11 @@ function requireLogin() {
  * Vérifie les droits d'administrateur
  * Redirige vers la page d'accueil si l'utilisateur n'est pas admin
  */
-function requireAdmin() {
-    requireLogin();
-    if (!isAdmin()) {
-        redirect('/index.php?controller=product&action=index', 'Accès administrateur requis', 'error');
+if (!function_exists('requireAdmin')) {
+    function requireAdmin() {
+        requireLogin();
+        if (!isAdmin()) {
+            redirect('/index.php?controller=product&action=index', 'Accès administrateur requis', 'error');
+        }
     }
 }

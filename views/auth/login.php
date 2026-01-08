@@ -43,7 +43,7 @@
 </main>
 
 
-<script>
+<script nonce="<?php echo $_SESSION['csp_nonce'] ?? ''; ?>">
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('login-form');
     

@@ -48,6 +48,15 @@
                                 </span>
                             </div>
                             <div class="account-divider"></div>
+                            <a href="<?php echo BASE_URL; ?>/index.php?controller=admin&action=invoices">
+                                <i class="fas fa-file-invoice"></i> Factures (admin)
+                            </a>
+                            <a href="<?php echo BASE_URL; ?>/index.php?controller=admin&action=signals">
+                                <i class="fas fa-flag"></i> Signalements (admin)
+                            </a>
+                            <a href="<?php echo BASE_URL; ?>/index.php?controller=admin&action=erDiagram">
+                                <i class="fas fa-project-diagram"></i> Diagramme ER
+                            </a>
                         <?php endif; ?>
                         <a href="<?php echo BASE_URL; ?>/index.php?controller=auth&action=account">
                             <i class="fas fa-user-cog"></i> Gestion du compte

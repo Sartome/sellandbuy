@@ -6,6 +6,7 @@ class ImageUpload {
     private $maxFileSize;
     private $allowedTypes;
     private $recommendedSizes;
+    private $allowedExtensions;
     
     public function __construct() {
         $this->uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/public/images/uploads/';
@@ -16,6 +17,7 @@ class ImageUpload {
             'medium' => ['width' => 800, 'height' => 600],
             'large' => ['width' => 1200, 'height' => 900]
         ];
+        $this->allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
         
         // Créer le dossier d'upload s'il n'existe pas
         if (!is_dir($this->uploadDir)) {
@@ -34,7 +36,7 @@ class ImageUpload {
         }
         
         // Générer un nom de fichier unique
-        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         $filename = uniqid() . '_' . time() . '.' . $extension;
         $filepath = $this->uploadDir . $filename;
         
@@ -129,6 +131,11 @@ class ImageUpload {
         $imageInfo = getimagesize($file['tmp_name']);
         if ($imageInfo === false) {
             $errors[] = 'Le fichier n\'est pas une image valide';
+        }
+        
+        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if ($extension === '' || !in_array($extension, $this->allowedExtensions, true)) {
+            $errors[] = 'Extension de fichier non autorisée (jpg, jpeg, png, webp, gif uniquement)';
         }
         
         return $errors;

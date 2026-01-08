@@ -1,6 +1,37 @@
-# 🛒 Sell & Buy Marketplace - Enhanced
+# 🛒 Sell & Buy Marketplace - Enhanced Edition
 
-Un marketplace moderne avec système d'upload d'images avancé, enchères, et fonctionnalités complètes.
+Un marketplace moderne et sécurisé avec système d'upload d'images avancé, enchères, API REST, et fonctionnalités complètes.
+
+## ✨ Nouveautés - Version Enhanced
+
+### 🔒 Sécurité Renforcée
+- **Protection CSRF** - Tokens de sécurité sur tous les formulaires
+- **Validation avancée** - Framework de validation complet avec règles personnalisables
+- **Hachage sécurisé** - Argon2ID pour les mots de passe
+- **Limitation de débit** - Protection contre les attaques par force brute
+- **Journalisation sécurisée** - Logs détaillés des événements de sécurité
+- **Configuration par environnement** - Support des fichiers .env
+
+### 🎯 Nouvelles Fonctionnalités
+- **API REST complète** - Endpoints JSON pour intégrations tierces
+- **Recherche avancée** - Recherche en temps réel avec filtres multiples
+- **Pagination intelligente** - Navigation optimisée pour grandes listes
+- **Notifications Toast** - Messages élégants et non-intrusifs
+- **Validation en temps réel** - Feedback immédiat sur les formulaires
+- **Prévisualisation d'images** - Aperçu instantané avant upload
+
+### 🎨 Améliorations UI/UX
+- **Design moderne** - Interface utilisateur améliorée avec animations
+- **CSS modulaire** - Nouvelles classes utilitaires et composants
+- **JavaScript avancé** - Classes ES6+ pour fonctionnalités interactives
+- **Responsive amélioré** - Optimisé pour tous les appareils
+- **États de chargement** - Indicateurs visuels pour actions asynchrones
+
+## 📚 Documentation Complète
+
+- 📋 **[Statement of Work](STATEMENT_OF_WORK.md)** - Vue d'ensemble du projet et roadmap
+- 🚀 **[Implementation Guide](IMPLEMENTATION_GUIDE.md)** - Guide d'installation et configuration détaillé
+- 📖 **README.md** - Ce fichier (overview et quick start)
 
 ## 🏗️ Architecture du Projet
 
@@ -8,34 +39,53 @@ Un marketplace moderne avec système d'upload d'images avancé, enchères, et fo
 
 ```
 sellandbuy/
-├── admin/                  # Outils d'administration
-│   ├── init_categories.php # Initialisation des catégories
-│   └── README.md           # Documentation admin
-├── config/                 # Configuration
-│   ├── constants.php       # Constantes et chemins
-│   └── database.php        # Configuration base de données
-├── controllers/            # Contrôleurs MVC
-│   ├── AdminController.php # Administration et debug
-│   ├── AuthController.php  # Authentification
-│   ├── ProductController.php # Gestion produits
-│   └── AuctionController.php # Gestion enchères
-├── models/                 # Modèles de données
-│   ├── Database.php        # Singleton de connexion
-│   ├── Utilisateur.php     # Gestion utilisateurs
-│   ├── Produit.php         # Gestion produits
-│   ├── Categorie.php       # Gestion catégories
+├── admin/                      # Outils d'administration
+│   ├── init_categories.php     # Initialisation des catégories
+│   └── README.md               # Documentation admin
+├── config/                     # Configuration
+│   ├── Config.php             # 🆕 Gestionnaire de configuration
+│   ├── constants.php           # Constantes et chemins
+│   └── database.php            # Configuration base de données
+├── controllers/                # Contrôleurs MVC
+│   ├── AdminController.php     # Administration et debug
+│   ├── ApiController.php       # 🆕 API REST
+│   ├── AuthController.php      # Authentification
+│   ├── ProductController.php   # Gestion produits
+│   └── AuctionController.php   # Gestion enchères
+├── helpers/                    # Fonctions utilitaires
+│   ├── Security.php           # 🆕 Utilitaires de sécurité
+│   ├── Validator.php          # 🆕 Validation des entrées
+│   ├── Logger.php             # 🆕 Système de journalisation
+│   ├── functions.php          # ✨ Amélioré
+│   ├── ImageUpload.php        # Upload d'images
+│   └── InvoicePdf.php         # Génération PDF
+├── models/                     # Modèles de données
+│   ├── Database.php            # Singleton de connexion
+│   ├── Utilisateur.php         # Gestion utilisateurs
+│   ├── Produit.php            # ✨ Amélioré (recherche & pagination)
+│   ├── Categorie.php           # Gestion catégories
 │   └── ...
-├── views/                  # Vues (templates)
-│   ├── layouts/           # Layouts communs
-│   ├── auth/              # Pages d'authentification
-│   ├── products/          # Pages produits
-│   ├── admin/             # Interface administration
+├── views/                      # Vues (templates)
+│   ├── layouts/               # Layouts communs
+│   ├── auth/                  # Pages d'authentification
+│   ├── products/              # Pages produits
+│   ├── admin/                 # Interface administration
 │   └── ...
-├── public/                 # Assets publics
-│   ├── css/style.css      # Styles principaux
-│   ├── js/app.js          # JavaScript principal
-│   └── images/uploads/    # Images uploadées
-└── helpers/               # Fonctions utilitaires
+├── public/                     # Assets publics
+│   ├── css/
+│   │   ├── style.css          # Styles principaux
+│   │   └── enhanced.css       # 🆕 Styles modernes
+│   ├── js/
+│   │   ├── app.js             # JavaScript principal
+│   │   └── enhanced.js        # 🆕 JS avancé
+│   └── images/uploads/        # Images uploadées
+├── logs/                       # 🆕 Journaux d'application
+├── .env.example               # 🆕 Template de configuration
+├── .gitignore                 # 🆕 Exclusions Git
+├── STATEMENT_OF_WORK.md       # 🆕 Document projet
+├── IMPLEMENTATION_GUIDE.md    # 🆕 Guide d'installation
+├── composer.json              # Dépendances PHP
+└── index.php                  # Point d'entrée
 ```
 
 ## 🗄️ Base de Données
@@ -59,64 +109,95 @@ sellandbuy/
 - **`database/vente_groupe.sql`** - Script de création complet de la base de données
 - **`init_categories.php`** - Initialisation des catégories par défaut
 
-## 🚀 Installation
+## 🚀 Quick Start
 
-### 1. **Configuration de la Base de Données**
+Voir le **[Implementation Guide](IMPLEMENTATION_GUIDE.md)** pour les instructions détaillées d'installation.
 
-```sql
--- Exécuter le script SQL
-mysql -u root -p < database/vente_groupe.sql
-```
-
-### 2. **Configuration PHP**
-
-```php
-// config/database.php
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'vente_groupe');
-define('DB_USER', 'votre_utilisateur');
-define('DB_PASS', 'votre_mot_de_passe');
-```
-
-### 3. **Extensions PHP Requises**
-
-- ✅ **PDO** - Connexion base de données
-- ✅ **pdo_mysql** - Driver MySQL
-- ✅ **GD** - Traitement d'images
-- ✅ **fileinfo** - Détection de types de fichiers
-- ✅ **session** - Gestion des sessions
-
-### 4. **Permissions des Dossiers**
+### Installation Rapide
 
 ```bash
-# Créer le dossier d'upload
-mkdir -p public/images/uploads
-chmod 755 public/images/uploads
+# 1. Cloner/extraire le projet
+cd /path/to/htdocs
+
+# 2. Installer les dépendances
+composer install
+
+# 3. Configurer l'environnement
+cp .env.example .env
+# Éditer .env avec vos paramètres
+
+# 4. Créer la base de données
+mysql -u root -p < database/vente_groupe.sql
+
+# 5. Initialiser les catégories
+php admin/init_categories.php
+
+# 5.b. Initialiser le module "vente_groupe" (tables supplémentaires: Facture, Bloquer, Debloquer, Signaler)
+php admin/init_vente_groupe.php
+
+# 5.c. Générer le diagramme ER (visualisation)
+En tant qu'administrateur, ouvrez :
+
+- `index.php?controller=admin&action=erDiagram` — visualiser le diagramme ER généré à partir du schéma actuel
+- `index.php?controller=admin&action=downloadDiagram` — télécharger le diagramme au format SVG
+
+# 6. Créer les dossiers nécessaires
+mkdir -p logs public/images/uploads
+chmod 755 logs public/images/uploads
+
+# 7. Créer un admin
+php helpers/create_admin.php
 ```
 
 ## 🎨 Fonctionnalités
 
-### 🔐 **Authentification**
-- **Connexion/Inscription** - `views/auth/login.php`, `views/auth/register.php`
+## 🎨 Fonctionnalités
+
+### 🔐 **Authentification & Sécurité**
+- **Connexion/Inscription** avec validation renforcée
+- **Protection CSRF** sur tous les formulaires
+- **Hachage Argon2ID** pour mots de passe
+- **Limitation de débit** anti-force brute
 - **Gestion des rôles** - Client, Vendeur, Administrateur
-- **Sessions sécurisées** - `helpers/session.php`
-- **Validation côté serveur** - `controllers/AuthController.php`
+- **Sessions sécurisées** avec cookies HttpOnly
+- **Journalisation** des événements de sécurité
 
 ### 📦 **Gestion des Produits**
-- **Création de produits** - `views/products/create.php`
-- **Upload d'images multiples** - `views/products/add_images.php`
-- **Système de catégories** - `models/Categorie.php`
-- **Recherche et filtres** - `controllers/ProductController.php`
+- **Création simplifiée** avec formulaires validés
+- **Upload d'images multiples** avec prévisualisation
+- **Système de catégories** dynamique
+- **Recherche avancée** avec filtres en temps réel
+- **Pagination intelligente** pour grandes listes
+- **Gestion des stocks** avec quantités
 
 ### 🏷️ **Système d'Enchères**
-- **Création d'enchères** - `views/auction/create.php`
-- **Participation aux enchères** - `views/auction/view.php`
-- **Gestion des offres** - `controllers/AuctionController.php`
+- **Création d'enchères** avec dates de fin
+- **Participation** en temps réel
+- **Gestion automatique** des offres
+- **Notifications** des événements
+
+### 🌐 **API REST**
+- **Endpoints JSON** pour intégrations
+- **Health check** - `/api/health`
+- **Liste produits** - `/api/products?page=1&limit=20`
+- **Recherche** - `/api/search?q=term&category=1`
+- **Catégories** - `/api/categories`
+- **Documentation** complète dans Implementation Guide
+
+### 🎯 **Interface Utilisateur**
+- **Design moderne** avec animations fluides
+- **Toast notifications** élégantes
+- **Validation en temps réel** des formulaires
+- **Prévisualisation** des images avant upload
+- **États de chargement** visuels
+- **Responsive** optimisé mobile/tablette
 
 ### 🔧 **Administration**
-- **Tableau de bord admin** - `views/admin/index.php`
-- **Debug système intégré** - `controllers/AdminController.php` → `debug()`
-- **Analyses et statistiques** - `views/admin/analytics.php`
+- **Tableau de bord** complet
+- **Debug système** intégré
+- **Statistiques** et analytics
+- **Gestion utilisateurs** avancée
+- **Configuration** centralisée
 
 ## 🛠️ Debug et Maintenance
 

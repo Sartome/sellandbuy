@@ -131,8 +131,8 @@ $productStats = $produitModel->getStats();
 
 
 <?php require VIEWS_PATH . '/layouts/footer.php'; ?>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js" nonce="<?php echo $_SESSION['csp_nonce'] ?? ''; ?>"></script>
+<script nonce="<?php echo $_SESSION['csp_nonce'] ?? ''; ?>">
 const salesCountData = <?php echo json_encode($salesCount ?? []); ?>;
 const salesAmountData = <?php echo json_encode($salesAmount ?? []); ?>;
 const usersCountData = <?php echo json_encode($usersCount ?? []); ?>;

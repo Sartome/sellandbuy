@@ -39,8 +39,29 @@
 
         <!-- Prix fixe (pour achat direct) -->
         <div class="form-group" id="fixed-price-group">
-            <label>Prix fixe (€)</label>
-            <input type="number" name="prix" min="0" step="0.01" placeholder="0.00" />
+            <label>Prix HT (€)</label>
+            <input type="number" id="prix_ht" name="prix_ht" min="0" step="0.01" placeholder="0.00" oninput="updateTTC()" />
+            
+            <div style="margin: 10px 0;">
+                <?php if (!empty($defaultTaxEnabled)): ?>
+                    <div class="tax-info">
+                        <span class="tax-name"><?php echo htmlspecialchars($defaultTaxName ?? 'TVA'); ?></span>
+                        <span class="tax-rate-value"><?php echo number_format($defaultTaxRate ?? 0, 2, ',', ' '); ?>%</span>
+                        <span class="tax-note">(taux défini par l'administration)</span>
+                    </div>
+                    <input type="hidden" id="taux_tva" name="taux_tva" value="<?php echo htmlspecialchars((string)($defaultTaxRate ?? 0), ENT_QUOTES, 'UTF-8'); ?>">
+                <?php else: ?>
+                    <div class="tax-info">
+                        <span class="tax-name">Aucune taxe appliquée</span>
+                        <span class="tax-note">(les taxes sont désactivées par l'administration)</span>
+                    </div>
+                    <input type="hidden" id="taux_tva" name="taux_tva" value="0">
+                <?php endif; ?>
+            </div>
+            
+            <label>Prix TTC (€)</label>
+            <input type="number" id="prix_ttc" name="prix_ttc" min="0" step="0.01" placeholder="0.00" oninput="updateHT()" />
+            <input type="hidden" id="prix" name="prix" value="0" />
         </div>
 
         <!-- Prix de départ (pour enchère) -->
@@ -295,6 +316,31 @@
     padding: 4px 0;
 }
 
+.tax-info {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: baseline;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: rgba(124,58,237,0.06);
+    border: 1px solid rgba(124,58,237,0.35);
+    font-size: 0.9rem;
+}
+
+.tax-info .tax-name {
+    font-weight: 600;
+}
+
+.tax-info .tax-rate-value {
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.tax-info .tax-note {
+    color: var(--muted);
+}
+
 .image-preview-container {
     margin-top: 20px;
     padding: 16px;
@@ -396,7 +442,25 @@
 }
 </style>
 
-<script>
+<script nonce="<?php echo $_SESSION['csp_nonce'] ?? ''; ?>">
+// Fonction pour mettre à jour le TTC en fonction du HT
+function updateTTC() {
+    const ht = parseFloat(document.getElementById('prix_ht').value) || 0;
+    const tauxTVA = parseFloat(document.getElementById('taux_tva').value) || 0;
+    const ttc = ht * (1 + (tauxTVA / 100));
+    document.getElementById('prix_ttc').value = ttc.toFixed(2);
+    document.getElementById('prix').value = ttc.toFixed(2); // Store TTC as the main price
+}
+
+// Fonction pour mettre à jour le HT en fonction du TTC
+function updateHT() {
+    const ttc = parseFloat(document.getElementById('prix_ttc').value) || 0;
+    const tauxTVA = parseFloat(document.getElementById('taux_tva').value) || 0;
+    const ht = ttc / (1 + (tauxTVA / 100));
+    document.getElementById('prix_ht').value = ht.toFixed(2);
+    document.getElementById('prix').value = ttc.toFixed(2); // Store TTC as the main price
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const uploadArea = document.getElementById('upload-area');
     const imageInput = document.getElementById('image-input');

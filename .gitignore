@@ -1,0 +1,43 @@
+# Environment and configuration
+.env
+.env.local
+.env.production
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Composer
+/vendor/
+composer.lock
+
+# Logs
+*.log
+logs/
+error_log
+
+# Uploaded files
+public/images/uploads/*
+!public/images/uploads/.gitkeep
+
+# Cache and temporary files
+cache/
+tmp/
+*.tmp
+*.cache
+
+# Backup files
+*.sql.bak
+*.bak
+backup/
+
+# PHPUnit
+.phpunit.result.cache
+/phpunit.xml

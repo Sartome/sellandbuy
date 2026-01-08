@@ -681,6 +681,176 @@ class AdminController {
         $pageTitle = 'Tickets support';
         require_once VIEWS_PATH . '/admin/tickets.php';
     }
+
+    /**
+     * Liste des factures (admin)
+     */
+    public function invoices() {
+        requireAdmin();
+        require_once MODELS_PATH . '/Facture.php';
+        $facture = new Facture();
+
+        // Handle simple delete action
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_facture'])) {
+            $id = (int)($_POST['id_facture'] ?? 0);
+            if ($id > 0 && $facture->delete($id)) {
+                redirect('/index.php?controller=admin&action=invoices', 'Facture supprimée');
+            }
+            redirect('/index.php?controller=admin&action=invoices', 'Erreur lors de la suppression', 'error');
+        }
+
+        $invoices = $facture->getAll();
+        $pageTitle = 'Factures';
+        require_once VIEWS_PATH . '/admin/invoices.php';
+    }
+
+    /**
+     * Liste des signalements (admin)
+     */
+    public function signals() {
+        requireAdmin();
+        require_once MODELS_PATH . '/Signaler.php';
+        $signaler = new Signaler();
+        $signals = $signaler->getAll();
+        $pageTitle = 'Signalements';
+        require_once VIEWS_PATH . '/admin/signals.php';
+    }
+
+    /**
+     * Générer et afficher le diagramme ER (admin)
+     */
+    public function erDiagram() {
+        requireAdmin();
+        require_once HELPERS_PATH . '/ERDiagram.php';
+        $er = new ERDiagram();
+        $svg = $er->generateSvg();
+
+        // Info on saved file if exists
+        $savedPath = ROOT_PATH . '/database/er_diagram.svg';
+        $savedInfo = null;
+        if (file_exists($savedPath)) {
+            $savedInfo = [
+                'path' => $savedPath,
+                'mtime' => date('Y-m-d H:i:s', filemtime($savedPath)),
+                'size' => filesize($savedPath)
+            ];
+        }
+
+        $pageTitle = 'ER Diagram';
+        require_once VIEWS_PATH . '/admin/er_diagram.php';
+    }
+
+    /**
+     * Enregistrer le diagramme ER en SVG dans le dossier `database/`
+     */
+    public function saveDiagram() {
+        requireAdmin();
+        require_once HELPERS_PATH . '/ERDiagram.php';
+
+        $er = new ERDiagram();
+        $svg = $er->generateSvg();
+        $savedPath = ROOT_PATH . '/database/er_diagram.svg';
+
+        try {
+            if (!is_dir(dirname($savedPath))) {
+                mkdir(dirname($savedPath), 0755, true);
+            }
+
+            $bytes = file_put_contents($savedPath, $svg);
+            if ($bytes === false) {
+                redirect('/index.php?controller=admin&action=erDiagram', 'Impossible d\'écrire le fichier', 'error');
+            }
+
+            redirect('/index.php?controller=admin&action=erDiagram', 'Diagramme enregistré dans ' . $savedPath);
+        } catch (Exception $e) {
+            redirect('/index.php?controller=admin&action=erDiagram', 'Erreur lors de la sauvegarde: ' . $e->getMessage(), 'error');
+        }
+    }
+
+    /**
+     * Télécharger le diagramme ER en SVG (préférer le fichier sauvegardé si présent)
+     */
+    public function downloadDiagram() {
+        requireAdmin();
+        $savedPath = ROOT_PATH . '/database/er_diagram.svg';
+        if (file_exists($savedPath)) {
+            header('Content-Type: image/svg+xml');
+            header('Content-Disposition: attachment; filename="er_diagram.svg"');
+            readfile($savedPath);
+            exit;
+        }
+
+        require_once HELPERS_PATH . '/ERDiagram.php';
+        $er = new ERDiagram();
+        $svg = $er->generateSvg();
+        header('Content-Type: image/svg+xml');
+        header('Content-Disposition: attachment; filename="er_diagram.svg"');
+        echo $svg;
+        exit;
+    }
+
+    /**
+     * Bloquer un vendeur (action admin)
+     */
+    public function blockVendor() {
+        requireAdmin();
+        $vendorId = (int)($_GET['vendor_id'] ?? 0);
+        if ($vendorId <= 0) {
+            redirect('/index.php?controller=admin&action=vendors', 'Vendeur invalide', 'error');
+        }
+
+        require_once MODELS_PATH . '/Bloquer.php';
+        $bloquer = new Bloquer();
+        if ($bloquer->exists($vendorId)) {
+            redirect('/index.php?controller=admin&action=vendors', 'Vendeur déjà bloqué', 'warning');
+        }
+
+        if ($bloquer->create((int)$_SESSION['user_id'], $vendorId)) {
+            redirect('/index.php?controller=admin&action=vendors', 'Vendeur bloqué avec succès');
+        }
+
+        redirect('/index.php?controller=admin&action=vendors', 'Erreur lors du blocage', 'error');
+    }
+
+    /**
+     * Débloquer un vendeur (action admin)
+     */
+    public function unblockVendor() {
+        requireAdmin();
+        $vendorId = (int)($_GET['vendor_id'] ?? 0);
+        if ($vendorId <= 0) {
+            redirect('/index.php?controller=admin&action=vendors', 'Vendeur invalide', 'error');
+        }
+
+        require_once MODELS_PATH . '/Debloquer.php';
+        require_once MODELS_PATH . '/Bloquer.php';
+        $debloquer = new Debloquer();
+        $bloquer = new Bloquer();
+
+        $debloquer->create((int)$_SESSION['user_id'], $vendorId);
+        $bloquer->removeByVendor($vendorId);
+
+        redirect('/index.php?controller=admin&action=vendors', 'Vendeur débloqué');
+    }
+
+    /**
+     * Supprimer un signalement
+     */
+    public function deleteSignal() {
+        requireAdmin();
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id <= 0) {
+            redirect('/index.php?controller=admin&action=signals', 'Signalement invalide', 'error');
+        }
+
+        require_once MODELS_PATH . '/Signaler.php';
+        $signaler = new Signaler();
+        if ($signaler->delete($id)) {
+            redirect('/index.php?controller=admin&action=signals', 'Signalement supprimé');
+        }
+        redirect('/index.php?controller=admin&action=signals', 'Erreur lors de la suppression', 'error');
+    }
 }
+
 
 

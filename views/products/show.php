@@ -2,6 +2,7 @@
 require_once MODELS_PATH . '/ProduitImage.php';
 require_once MODELS_PATH . '/Review.php';
 require_once MODELS_PATH . '/Sale.php';
+require_once MODELS_PATH . '/Vendeur.php';
 
 $produitImageModel = new ProduitImage();
 $productImages = $produitImageModel->getImagesByProduct((int)$product['id_produit']);
@@ -18,6 +19,9 @@ if (!empty($_SESSION['user_id'])) {
     $userCanReview = $saleModel->userHasPurchasedProduct($userId, (int)$product['id_produit']);
     $userHasReviewed = $reviewModel->userHasReviewed((int)$product['id_produit'], $userId);
 }
+
+$vendeurModel = new Vendeur();
+$isVendorCertified = $vendeurModel->isCertified((int)($product['id_vendeur'] ?? 0));
 ?>
 <?php require VIEWS_PATH . '/layouts/header.php'; ?>
 <?php require VIEWS_PATH . '/layouts/navbar.php'; ?>
@@ -42,9 +46,9 @@ if (!empty($_SESSION['user_id'])) {
                             <i class="fas fa-expand"></i>
                         </button>
                         <?php if (!empty($_SESSION['user_id']) && ((int)$_SESSION['user_id'] === (int)$product['id_vendeur'] || !empty($_SESSION['is_admin']))): ?>
-                            <button class="action-btn" onclick="addMoreImages()" title="Ajouter des images">
+                            <a class="action-btn" href="<?php echo BASE_URL; ?>/index.php?controller=product&amp;action=addImages&amp;id=<?php echo (int)$product['id_produit']; ?>" title="Ajouter des images">
                                 <i class="fas fa-plus"></i>
-                            </button>
+                            </a>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -78,9 +82,9 @@ if (!empty($_SESSION['user_id'])) {
                     <i class="fas fa-image"></i>
                     <p>Aucune image disponible</p>
                     <?php if (!empty($_SESSION['user_id']) && ((int)$_SESSION['user_id'] === (int)$product['id_vendeur'] || !empty($_SESSION['is_admin']))): ?>
-                        <button class="btn" onclick="addMoreImages()">
+                        <a class="btn" href="<?php echo BASE_URL; ?>/index.php?controller=product&amp;action=addImages&amp;id=<?php echo (int)$product['id_produit']; ?>">
                             <i class="fas fa-plus"></i> Ajouter des images
-                        </button>
+                        </a>
                     <?php endif; ?>
                 </div>
             <?php endif; ?>
@@ -96,9 +100,20 @@ if (!empty($_SESSION['user_id'])) {
             </div>
 
             <div class="price-section">
-                <div class="price-main money-amount"><?php echo number_format((float)$product['prix'], 2, ',', ' '); ?> €</div>
-                <div class="price-details">
-                    <small class="price-small">Prix TTC</small>
+                <div class="price">
+                    <div class="price-ttc">
+                        <?php echo number_format($product['prix'], 2, ',', ' '); ?> € TTC
+                    </div>
+                    <?php if (isset($product['prix_ht']) && $product['prix_ht'] > 0): ?>
+                        <div class="price-details">
+                            <span class="price-ht">
+                                <?php echo number_format($product['prix_ht'], 2, ',', ' '); ?> € HT
+                            </span>
+                            <span class="tax-rate">
+                                (dont <?php echo number_format($product['prix'] - $product['prix_ht'], 2, ',', ' '); ?> € de TVA à <?php echo number_format($product['taux_tva'] ?? 20, 2, ',', ' '); ?>%)
+                            </span>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -129,7 +144,9 @@ if (!empty($_SESSION['user_id'])) {
                     </div>
                     <div class="seller-details">
                         <h3><?php echo htmlspecialchars($product['nom_entreprise'] ?? 'Vendeur'); ?></h3>
-                        <p>Vendeur vérifié</p>
+                        <?php if ($isVendorCertified): ?>
+                            <p>Vendeur vérifié</p>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -142,6 +159,10 @@ if (!empty($_SESSION['user_id'])) {
                     <div class="secondary-actions">
                         <a class="btn" href="<?php echo BASE_URL; ?>/index.php?controller=prepurchase&action=create&id=<?php echo (int)$product['id_produit']; ?>">
                             <i class="fas fa-clock"></i> Pré-commander
+                        </a>
+
+                        <a class="btn btn-warning" href="<?php echo BASE_URL; ?>/index.php?controller=product&action=signal&id=<?php echo (int)$product['id_produit']; ?>" onclick="return confirm('Souhaitez-vous signaler ce produit ?');">
+                            <i class="fas fa-flag"></i> Signaler
                         </a>
                     </div>
                 <?php endif; ?>
@@ -226,9 +247,12 @@ if (!empty($_SESSION['user_id'])) {
                     <p>Vous avez déjà laissé un avis. Vous pouvez le mettre à jour ci-dessous.</p>
                 <?php endif; ?>
                 <form method="post" action="<?php echo BASE_URL; ?>/index.php?controller=review&action=create" class="review-form">
+                    <h3>Donnez votre avis sur ce produit</h3>
+                    <p class="review-help">Votre retour aide les autres acheteurs à faire le bon choix.</p>
+
                     <input type="hidden" name="product_id" value="<?php echo (int)$product['id_produit']; ?>">
                     <div class="form-group">
-                        <label>Votre note</label>
+                        <label>Votre note <small>(5 = Excellent, 1 = Très mauvais)</small></label>
                         <div class="rating-input">
                             <?php for ($i = 5; $i >= 1; $i--): ?>
                                 <input type="radio" id="star-<?php echo $i; ?>" name="rating" value="<?php echo $i; ?>" <?php echo $i === 5 ? 'checked' : ''; ?>>
@@ -238,10 +262,10 @@ if (!empty($_SESSION['user_id'])) {
                     </div>
                     <div class="form-group">
                         <label>Votre commentaire</label>
-                        <textarea name="comment" rows="3" placeholder="Partagez votre expérience..."></textarea>
+                        <textarea name="comment" rows="4" placeholder="Parlez de la qualité du produit, de la livraison, et de votre expérience globale..."></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-star"></i> Envoyer mon avis
+                        <i class="fas fa-star"></i> Publier mon avis
                     </button>
                 </form>
             </div>
@@ -266,8 +290,63 @@ if (!empty($_SESSION['user_id'])) {
     </div>
 </main>
 
+<style>
+    .price-details {
+        font-size: 0.9em;
+        color: #666;
+        margin-top: 5px;
+    }
+    
+    .price-ttc {
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #2c3e50;
+    }
+    
+    .price-ht {
+        color: #7f8c8d;
+    }
+    
+    .tax-rate {
+        font-size: 0.9em;
+        color: #95a5a6;
+        margin-left: 5px;
+    }
+    .review-form .rating-input {
+        display: inline-flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+        gap: 4px;
+    }
 
-<script>
+    .review-form .rating-input input[type="radio"] {
+        display: none;
+    }
+
+    .review-form .rating-input label {
+        cursor: pointer;
+        font-size: 1.8rem;
+        line-height: 1;
+        color: #e2e8f0;
+        transition: color 0.2s ease-in-out;
+    }
+
+    /* Fill stars on hover */
+    .review-form .rating-input input[type="radio"]:hover ~ label,
+    .review-form .rating-input input[type="radio"]:checked ~ label,
+    .review-form .rating-input label:hover,
+    .review-form .rating-input label:hover ~ label {
+        color: #facc15;
+    }
+    
+    /* Keep stars filled when a rating is selected */
+    .review-form .rating-input:not(:hover) input[type="radio"]:checked ~ label {
+        color: #facc15;
+    }
+</style>
+
+
+<script nonce="<?php echo $_SESSION['csp_nonce'] ?? ''; ?>">
 let currentImageIndex = 0;
 let productImages = <?php echo json_encode($productImages); ?>;
 

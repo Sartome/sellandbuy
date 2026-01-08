@@ -167,7 +167,7 @@
     </div>
 </main>
 
-<script>
+<script nonce="<?php echo $_SESSION['csp_nonce'] ?? ''; ?>">
 // Mise à jour en temps réel de l'aperçu
 document.addEventListener('DOMContentLoaded', function() {
     const taxRateInput = document.getElementById('tax_rate');

@@ -345,7 +345,7 @@
 }
 </style>
 
-<script>
+<script nonce="<?php echo $_SESSION['csp_nonce'] ?? ''; ?>">
 document.addEventListener('DOMContentLoaded', function() {
     const uploadArea = document.getElementById('upload-area');
     const imageInput = document.getElementById('image-input');

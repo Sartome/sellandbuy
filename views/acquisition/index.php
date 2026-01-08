@@ -9,17 +9,17 @@
     </div>
 
     <div class="acquisition-tabs">
-        <button class="tab-btn active" onclick="showTab('purchases')">
+        <button class="tab-btn active" onclick="showTab(this, 'purchases')">
             <i class="fas fa-shopping-cart"></i> Mes Achats
         </button>
-        <button class="tab-btn" onclick="showTab('preorders')">
+        <button class="tab-btn" onclick="showTab(this, 'preorders')">
             <i class="fas fa-clock"></i> Précommandes
         </button>
-        <button class="tab-btn" onclick="showTab('auctions')">
+        <button class="tab-btn" onclick="showTab(this, 'auctions')">
             <i class="fas fa-gavel"></i> Enchères
         </button>
         <?php if ($isVendor): ?>
-            <button class="tab-btn" onclick="showTab('sales')">
+            <button class="tab-btn" onclick="showTab(this, 'sales')">
                 <i class="fas fa-store"></i> Mes Ventes
             </button>
         <?php endif; ?>
@@ -548,8 +548,8 @@
 }
 </style>
 
-<script>
-function showTab(tabName) {
+<script nonce="<?php echo $_SESSION['csp_nonce'] ?? ''; ?>">
+function showTab(buttonEl, tabName) {
     // Masquer tous les onglets
     const tabs = document.querySelectorAll('.tab-content');
     tabs.forEach(tab => tab.classList.remove('active'));
@@ -562,7 +562,9 @@ function showTab(tabName) {
     document.getElementById(tabName + '-tab').classList.add('active');
     
     // Activer le bouton correspondant
-    event.target.classList.add('active');
+    if (buttonEl) {
+        buttonEl.classList.add('active');
+    }
 }
 </script>
 

@@ -25,7 +25,15 @@
         </div>
 
         <div class="admin-card">
-            <h3>📦 Produits</h3>
+            <h3>�️ Diagramme ER</h3>
+            <p>Visualisez les tables et relations de la base de données</p>
+            <a href="index.php?controller=admin&action=erDiagram" class="btn btn-info">
+                <i class="fas fa-project-diagram"></i> Voir le diagramme ER
+            </a>
+        </div>
+
+        <div class="admin-card">
+            <h3>�📦 Produits</h3>
             <p>Gérez les produits et catégories</p>
             <a href="index.php?controller=product&action=index" class="btn btn-success">
                 <i class="fas fa-box"></i> Gérer les Produits
@@ -61,6 +69,22 @@
             <p>Consultez et répondez aux tickets des utilisateurs</p>
             <a href="index.php?controller=admin&action=tickets" class="btn btn-primary">
                 <i class="fas fa-life-ring"></i> Centre de tickets
+            </a>
+        </div>
+
+        <div class="admin-card">
+            <h3>🧾 Factures</h3>
+            <p>Consultez, téléchargez et gérez les factures générées</p>
+            <a href="index.php?controller=admin&action=invoices" class="btn btn-info">
+                <i class="fas fa-receipt"></i> Voir les factures
+            </a>
+        </div>
+
+        <div class="admin-card">
+            <h3>⚠️ Signalements</h3>
+            <p>Affichez les signalements de produits et prenez des mesures</p>
+            <a href="index.php?controller=admin&action=signals" class="btn btn-danger">
+                <i class="fas fa-flag"></i> Voir les signalements
             </a>
         </div>
 

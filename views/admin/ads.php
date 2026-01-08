@@ -402,7 +402,7 @@
 }
 </style>
 
-<script>
+<script nonce="<?php echo $_SESSION['csp_nonce'] ?? ''; ?>">
 function editProduct(id, description, prix, categorie) {
     document.getElementById('edit_product_id').value = id;
     document.getElementById('edit_description').value = description;

@@ -384,7 +384,7 @@
 }
 </style>
 
-<script>
+<script nonce="<?php echo $_SESSION['csp_nonce'] ?? ''; ?>">
 document.addEventListener('DOMContentLoaded', function() {
     const roleInputs = document.querySelectorAll('input[name="role"]');
     const vendeurFields = document.getElementById('vendeur-fields');

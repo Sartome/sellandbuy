@@ -22,6 +22,27 @@ class ProductController {
         require_once VIEWS_PATH . '/products/show.php';
     }
 
+    /**
+     * Signaler un produit (utilisateur connecté)
+     */
+    public function signal() {
+        requireLogin();
+        $productId = (int)($_GET['id'] ?? 0);
+        if ($productId <= 0) {
+            redirect('/index.php?controller=product&action=index', 'Produit invalide', 'error');
+        }
+
+        require_once MODELS_PATH . '/Signaler.php';
+        $model = new Signaler();
+        $userId = (int)($_SESSION['user_id'] ?? 0);
+
+        if ($model->create($userId, $productId)) {
+            redirect('/index.php?controller=product&action=show&id=' . $productId, 'Produit signalé. Merci de nous aider à maintenir la qualité.', 'success');
+        }
+
+        redirect('/index.php?controller=product&action=show&id=' . $productId, 'Erreur lors de l\'envoi du signalement', 'error');
+    }
+
     public function create() {
         requireLogin();
         require_once MODELS_PATH . '/Vendeur.php';
@@ -68,9 +89,14 @@ class ProductController {
                 die('Erreur: Impossible de déterminer l\'ID du vendeur');
             }
             
+            $prixHt = (float)($_POST['prix_ht'] ?? 0);
+            $tauxTva = (float)($_POST['taux_tva'] ?? 0);
+
             $data = [
                 'description' => sanitize($_POST['description'] ?? ''),
                 'prix' => (float)($_POST['prix'] ?? 0),
+                'prix_ht' => $prixHt,
+                'taux_tva' => $tauxTva,
                 'image' => '', // Sera mis à jour après upload
                 'image_alt' => sanitize($_POST['image_alt'] ?? ''),
                 'id_vendeur' => $vendorId,
@@ -167,6 +193,13 @@ class ProductController {
         $categories = $catModel->getAll();
         $imageUpload = new ImageUpload();
         $sizeRecommendations = $imageUpload->getSizeRecommendations();
+
+        require_once MODELS_PATH . '/SiteSettings.php';
+        $settings = new SiteSettings();
+        $defaultTaxRate = $settings->getTaxRate();
+        $defaultTaxName = $settings->getTaxName();
+        $defaultTaxEnabled = $settings->isTaxEnabled();
+
         $pageTitle = 'Nouveau produit';
         require_once VIEWS_PATH . '/products/create.php';
     }

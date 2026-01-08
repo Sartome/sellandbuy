@@ -1,24 +1,89 @@
 <?php
 // helpers/functions.php
 
+// Auto-load helper classes
+require_once __DIR__ . '/Security.php';
+require_once __DIR__ . '/Validator.php';
+require_once __DIR__ . '/Logger.php';
+
+/**
+ * Sanitize string data (backward compatibility)
+ * @param string $data Data to sanitize
+ * @return string Sanitized data
+ */
 function sanitize($data) {
-    $data = trim($data);
-    $data = stripslashes($data);
-    $data = htmlspecialchars($data);
-    return $data;
+    return Security::sanitizeString($data);
 }
 
+/**
+ * Redirect to a location with optional flash message
+ * @param string $location Location to redirect to
+ * @param string $message Flash message
+ * @param string $type Message type (success, error, warning, info)
+ */
+/**
+ * Redirect to a location with optional flash message
+ * @param string $location Location to redirect to
+ * @param string $message Flash message
+ * @param string $type Message type (success, error, warning, info)
+ */
 function redirect($location, $message = '', $type = 'success') {
     if (!empty($message)) {
         $_SESSION['message'] = $message;
         $_SESSION['message_type'] = $type;
     }
+    
+    // Log the redirect for debugging
+    Logger::debug("Redirecting to: {$location}", ['message' => $message, 'type' => $type]);
+    
     header("Location: " . BASE_URL . $location);
     exit;
 }
 
+/**
+ * Generate nonce for CSP
+ * @return string Nonce value
+ */
 function generateNonce() {
     return base64_encode(random_bytes(16));
+}
+
+/**
+ * Check if user is logged in
+ * @return bool True if logged in
+ */
+function isLoggedIn(): bool {
+    return !empty($_SESSION['user_id']);
+}
+
+/**
+ * Require user to be logged in (redirect if not)
+ * @param string $redirectTo Where to redirect if not logged in
+ */
+function requireLogin(string $redirectTo = '/index.php?controller=auth&action=login'): void {
+    if (!isLoggedIn()) {
+        Logger::security('Unauthorized access attempt', [
+            'request_uri' => $_SERVER['REQUEST_URI'] ?? '',
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? ''
+        ]);
+        redirect($redirectTo, 'Vous devez être connecté pour accéder à cette page', 'error');
+    }
+}
+
+/**
+ * Get current user ID
+ * @return int|null User ID or null
+ */
+function getCurrentUserId(): ?int {
+    return $_SESSION['user_id'] ?? null;
+}
+
+/**
+ * Get current user email
+ * @return string|null User email or null
+ */
+function getCurrentUserEmail(): ?string {
+    return $_SESSION['email'] ?? null;
 }
 
 /**

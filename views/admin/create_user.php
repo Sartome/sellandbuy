@@ -194,7 +194,7 @@
 }
 </style>
 
-<script>
+<script nonce="<?php echo $_SESSION['csp_nonce'] ?? ''; ?>">
 // Afficher/masquer la section vendeur selon le rôle sélectionné
 const roleRadios = document.querySelectorAll('input[name="role"]');
 const vendorSection = document.getElementById('vendor-section');
