@@ -22,6 +22,20 @@ if (!empty($_SESSION['user_id'])) {
 
 $vendeurModel = new Vendeur();
 $isVendorCertified = $vendeurModel->isCertified((int)($product['id_vendeur'] ?? 0));
+
+// Informations pour vente groupée si applicable
+$groupSale = false;
+$groupRequired = 0;
+$groupCurrent = 0;
+$groupExpiresAt = null;
+if (!empty($product['sale_type']) && $product['sale_type'] === 'group') {
+    require_once MODELS_PATH . '/PrePurchase.php';
+    $ppModel = new PrePurchase();
+    $groupSale = true;
+    $groupRequired = (int)($product['group_required_buyers'] ?? 0);
+    $groupCurrent = $ppModel->getTotalQuantityForProduct((int)$product['id_produit']);
+    $groupExpiresAt = $product['group_expires_at'] ?? null;
+}
 ?>
 <?php require VIEWS_PATH . '/layouts/header.php'; ?>
 <?php require VIEWS_PATH . '/layouts/navbar.php'; ?>
@@ -153,13 +167,31 @@ $isVendorCertified = $vendeurModel->isCertified((int)($product['id_vendeur'] ?? 
 
             <div class="product-actions">
                 <?php if (!empty($_SESSION['user_id']) && (int)($_SESSION['user_id']) !== (int)$product['id_vendeur']): ?>
-                    <a class="btn btn-buy btn-large" href="<?php echo BASE_URL; ?>/index.php?controller=product&action=buy&id=<?php echo (int)$product['id_produit']; ?>">
-                        <i class="fas fa-shopping-cart"></i> Acheter maintenant
-                    </a>
-                    <div class="secondary-actions">
-                        <a class="btn" href="<?php echo BASE_URL; ?>/index.php?controller=prepurchase&action=create&id=<?php echo (int)$product['id_produit']; ?>">
-                            <i class="fas fa-clock"></i> Pré-commander
+                    <?php if (!$groupSale || ($product['sale_type'] ?? '') === 'buy'): ?>
+                        <a class="btn btn-buy btn-large" href="<?php echo BASE_URL; ?>/index.php?controller=product&action=buy&id=<?php echo (int)$product['id_produit']; ?>">
+                            <i class="fas fa-shopping-cart"></i> Acheter maintenant
                         </a>
+                    <?php else: ?>
+                        <div class="group-sale-info">
+                            <div class="badge">Vente groupée</div>
+                            <p>Objectif: <strong><?php echo $groupRequired; ?></strong> acheteur(s)</p>
+                            <p>Participants: <strong><?php echo $groupCurrent; ?></strong></p>
+                            <?php if (!empty($groupExpiresAt)): ?>
+                                <p>Fin: <strong><?php echo date('d/m/Y à H:i', strtotime($groupExpiresAt)); ?></strong></p>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <div class="secondary-actions">
+                        <?php if (($product['sale_type'] ?? '') === 'group'): ?>
+                            <a class="btn" href="<?php echo BASE_URL; ?>/index.php?controller=prepurchase&action=create&id=<?php echo (int)$product['id_produit']; ?>">
+                                <i class="fas fa-clock"></i> Pré-commander
+                            </a>
+                        <?php else: ?>
+                            <a class="btn" href="<?php echo BASE_URL; ?>/index.php?controller=prepurchase&action=create&id=<?php echo (int)$product['id_produit']; ?>">
+                                <i class="fas fa-clock"></i> Pré-commander
+                            </a>
+                        <?php endif; ?>
 
                         <a class="btn btn-warning" href="<?php echo BASE_URL; ?>/index.php?controller=product&action=signal&id=<?php echo (int)$product['id_produit']; ?>" onclick="return confirm('Souhaitez-vous signaler ce produit ?');">
                             <i class="fas fa-flag"></i> Signaler

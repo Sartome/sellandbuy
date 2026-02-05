@@ -83,6 +83,8 @@ if (!method_exists($controllerInstance, $actionParam)) {
 try {
     call_user_func([$controllerInstance, $actionParam]);
 } catch (Throwable $e) {
+    // Log full exception to application logs for easier debugging
+    Logger::exception($e);
     error_log('[Sell&Buy] Fatal error: ' . $e->getMessage() . '\n' . $e->getTraceAsString());
     respondWithError(500, 'Une erreur interne est survenue. Veuillez réessayer plus tard.');
-}
+} 

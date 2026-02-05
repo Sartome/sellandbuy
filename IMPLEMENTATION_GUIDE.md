@@ -110,6 +110,32 @@ chmod 777 logs
 
 ### Step 5: Configuration
 
+---
+
+## Feature: Vente groupée (Group sale) ✅
+
+La plateforme supporte désormais la **vente groupée**. Le vendeur peut choisir le type de vente "Vente groupée" lors de la création d'un produit et définir :
+
+- Le **nombre d'acheteurs requis** (ex : 5)
+- Une **date/heure limite** (ex : 2026-02-10 18:00)
+
+Fonctionnement :
+- Les acheteurs peuvent se rejoindre via la fonctionnalité **Pré-commander** (pré-commande simple).
+- Tant que la date limite n'est pas passée, les pré-commandes restent en statut `pending`.
+- À l'expiration (ou dès que le seuil est atteint), le système évalue la vente :
+  - Si le nombre total d'unités pré-commandées est **>=** nombre requis, toutes les pré-commandes en attente sont **confirmées** et des entrées de vente sont créées. Le stock est ajusté en conséquence.
+  - Sinon, toutes les pré-commandes en attente sont **annulées**.
+
+Notes d'implémentation :
+- Nouvelle migration : `migrations/add_group_sale_to_products.sql` (ajoute `sale_type`, `group_required_buyers`, `group_expires_at` à `Produit`).
+- Logique d'évaluation implémentée dans `models/PrePurchase.php::evaluateGroupForProduct()` et déclenchée automatiquement :
+  - Lors de la consultation du produit (si la date d'expiration est passée)
+  - Lorsqu'une nouvelle pré-commande fait atteindre le seuil
+
+---
+
+### Step 6: Web Server Configuration
+
 #### Copy Environment File
 ```bash
 cp .env.example .env

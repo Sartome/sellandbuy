@@ -18,6 +18,16 @@ class ProductController {
         if (!$product) {
             die('Produit introuvable');
         }
+        // Si c'est une vente groupée et la date limite est passée, évaluer la vente
+        if (($product['sale_type'] ?? '') === 'group' && !empty($product['group_expires_at']) && strtotime($product['group_expires_at']) <= time()) {
+            require_once MODELS_PATH . '/PrePurchase.php';
+            $pp = new PrePurchase();
+            $pending = $pp->getPendingForProduct($id);
+            if (count($pending) > 0) {
+                $pp->evaluateGroupForProduct($id, (int)($product['group_required_buyers'] ?? 0), (float)$product['prix']);
+            }
+        }
+
         $pageTitle = 'Détail produit';
         require_once VIEWS_PATH . '/products/show.php';
     }
@@ -102,6 +112,9 @@ class ProductController {
                 'id_vendeur' => $vendorId,
                 'id_categorie' => (int)($_POST['id_categorie'] ?? $defaultCatId),
                 'quantity' => (int)($_POST['quantity'] ?? 1),
+                'sale_type' => $saleType,
+                'group_required_buyers' => null,
+                'group_expires_at' => null,
             ];
             
             $productModel = new Produit();
@@ -120,69 +133,83 @@ class ProductController {
                 if ($isValid) {
                     $data['prix'] = $startingPrice; // Utiliser le prix de départ pour l'affichage
                 }
+            } else if ($saleType === 'group') {
+                $requiredBuyers = (int)($_POST['group_required_buyers'] ?? 0);
+                $groupExpires = sanitize($_POST['group_expires_at'] ?? '');
+                $isValid = $data['description'] && $data['prix'] > 0 && $requiredBuyers > 0 && $groupExpires && strtotime($groupExpires) > time();
+                
+                if ($isValid) {
+                    $data['group_required_buyers'] = $requiredBuyers;
+                    $data['group_expires_at'] = date('Y-m-d H:i:s', strtotime($groupExpires));
+                }
             }
             
             if ($isValid) {
-                // Créer le produit d'abord
-                if ($productModel->create($data)) {
-                    $productId = $productModel->getLastInsertId();
-                    
-                    // Gérer l'upload d'images
-                    $uploadedImages = [];
-                    if (!empty($_FILES['images']['name'][0])) {
-                        foreach ($_FILES['images']['name'] as $key => $filename) {
-                            if (!empty($filename)) {
-                                $file = [
-                                    'name' => $_FILES['images']['name'][$key],
-                                    'type' => $_FILES['images']['type'][$key],
-                                    'tmp_name' => $_FILES['images']['tmp_name'][$key],
-                                    'error' => $_FILES['images']['error'][$key],
-                                    'size' => $_FILES['images']['size'][$key]
-                                ];
-                                
-                                $uploadResult = $imageUpload->uploadImage($file, $productId);
-                                if ($uploadResult['success']) {
-                                    $uploadedImages[] = $uploadResult;
+                try {
+                    // Créer le produit d'abord
+                    if ($productModel->create($data)) {
+                        $productId = $productModel->getLastInsertId();
+                        
+                        // Gérer l'upload d'images
+                        $uploadedImages = [];
+                        if (!empty($_FILES['images']['name'][0])) {
+                            foreach ($_FILES['images']['name'] as $key => $filename) {
+                                if (!empty($filename)) {
+                                    $file = [
+                                        'name' => $_FILES['images']['name'][$key],
+                                        'type' => $_FILES['images']['type'][$key],
+                                        'tmp_name' => $_FILES['images']['tmp_name'][$key],
+                                        'error' => $_FILES['images']['error'][$key],
+                                        'size' => $_FILES['images']['size'][$key]
+                                    ];
+                                    
+                                    $uploadResult = $imageUpload->uploadImage($file, $productId);
+                                    if ($uploadResult['success']) {
+                                        $uploadedImages[] = $uploadResult;
+                                    }
                                 }
                             }
                         }
-                    }
-                    
-                    // Ajouter les images à la base de données
-                    foreach ($uploadedImages as $index => $imageData) {
-                        $produitImageModel->addImage($productId, [
-                            'webPath' => $imageData['webPath'],
-                            'alt' => $data['image_alt'],
-                            'size' => $imageData['size'],
-                            'width' => $imageData['width'],
-                            'height' => $imageData['height'],
-                            'is_primary' => $index === 0, // Première image = principale
-                            'sort_order' => $index
-                        ]);
-                    }
-                    
-                    // Mettre à jour l'image principale dans la table Produit
-                    if (!empty($uploadedImages)) {
-                        $productModel->updateImage($productId, $uploadedImages[0]['webPath']);
-                    }
-                    
-                    // Si c'est une enchère, créer l'enchère
-                    if ($saleType === 'auction') {
-                        require_once MODELS_PATH . '/Auction.php';
-                        $auctionModel = new Auction();
-                        $startingPrice = (float)($_POST['starting_price'] ?? 0);
-                        $auctionEnd = date('Y-m-d H:i:s', strtotime($_POST['auction_end']));
                         
-                        if ($auctionModel->create($productId, $startingPrice, $auctionEnd)) {
-                            redirect('/index.php?controller=auction&action=view&product_id=' . $productId, 'Enchère créée avec succès');
+                        // Ajouter les images à la base de données
+                        foreach ($uploadedImages as $index => $imageData) {
+                            $produitImageModel->addImage($productId, [
+                                'webPath' => $imageData['webPath'],
+                                'alt' => $data['image_alt'],
+                                'size' => $imageData['size'],
+                                'width' => $imageData['width'],
+                                'height' => $imageData['height'],
+                                'is_primary' => $index === 0, // Première image = principale
+                                'sort_order' => $index
+                            ]);
+                        }
+                        
+                        // Mettre à jour l'image principale dans la table Produit
+                        if (!empty($uploadedImages)) {
+                            $productModel->updateImage($productId, $uploadedImages[0]['webPath']);
+                        }
+                        
+                        // Si c'est une enchère, créer l'enchère
+                        if ($saleType === 'auction') {
+                            require_once MODELS_PATH . '/Auction.php';
+                            $auctionModel = new Auction();
+                            $startingPrice = (float)($_POST['starting_price'] ?? 0);
+                            $auctionEnd = date('Y-m-d H:i:s', strtotime($_POST['auction_end']));
+                            
+                            if ($auctionModel->create($productId, $startingPrice, $auctionEnd)) {
+                                redirect('/index.php?controller=auction&action=view&product_id=' . $productId, 'Enchère créée avec succès');
+                            } else {
+                                redirect('/index.php?controller=product&action=index', 'Produit créé mais erreur lors de la création de l\'enchère');
+                            }
                         } else {
-                            redirect('/index.php?controller=product&action=index', 'Produit créé mais erreur lors de la création de l\'enchère');
+                            redirect('/index.php?controller=product&action=index', 'Produit créé avec succès');
                         }
                     } else {
-                        redirect('/index.php?controller=product&action=index', 'Produit créé avec succès');
+                        $error = 'Erreur lors de la création du produit';
                     }
-                } else {
-                    $error = 'Erreur lors de la création du produit';
+                } catch (Throwable $e) {
+                    Logger::exception($e);
+                    $error = 'Une erreur interne est survenue lors de la création du produit';
                 }
             } else {
                 $error = 'Vérifiez les champs obligatoires';

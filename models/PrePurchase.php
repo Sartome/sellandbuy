@@ -58,6 +58,64 @@ class PrePurchase {
         return $stmt->rowCount();
     }
 
+    public function getPendingForProduct(int $productId): array {
+        $stmt = $this->pdo->prepare("SELECT * FROM pre_purchases WHERE id_produit = ? AND status = 'pending' ORDER BY created_at ASC");
+        $stmt->execute([$productId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Evaluate a group sale for a product: if total quantity (pending + confirmed) >= required buyers,
+     * confirm all pending pre-purchases, create sales and decrease product stock. Otherwise cancel them.
+     */
+    public function evaluateGroupForProduct(int $productId, int $requiredBuyers, float $productPrice): bool {
+        $this->pdo->beginTransaction();
+        try {
+            $total = $this->getTotalQuantityForProduct($productId);
+
+            $pending = $this->getPendingForProduct($productId);
+
+            if ($total >= $requiredBuyers && count($pending) > 0) {
+                // Confirm all pending pre-purchases and create sales
+                require_once MODELS_PATH . '/Sale.php';
+                require_once MODELS_PATH . '/Produit.php';
+                $saleModel = new Sale();
+                $productModel = new Produit();
+
+                $confirmedCount = 0;
+                foreach ($pending as $pp) {
+                    $stmt = $this->pdo->prepare("UPDATE pre_purchases SET status='confirmed' WHERE id = ?");
+                    $stmt->execute([(int)$pp['id']]);
+
+                    $amount = (float)$productPrice * ((int)$pp['quantity']);
+                    if (!$saleModel->create((int)$productId, (int)$pp['id_client'], $amount)) {
+                        throw new Exception('Impossible de créer la vente');
+                    }
+                    $confirmedCount++;
+                }
+
+                // Decrease product stock by the total quantity purchased
+                if ($total > 0) {
+                    if (!$productModel->decreaseQuantity($productId, $total)) {
+                        throw new Exception('Impossible de diminuer le stock du produit');
+                    }
+                }
+
+                $this->pdo->commit();
+                return true;
+            } else {
+                // Not enough buyers: cancel pending pre-purchases for this product
+                $stmt = $this->pdo->prepare("UPDATE pre_purchases SET status='cancelled' WHERE id_produit = ? AND status = 'pending'");
+                $stmt->execute([$productId]);
+                $this->pdo->commit();
+                return true;
+            }
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            return false;
+        }
+    }
+
     public function getTotalQuantityForProduct(int $productId): int {
         $stmt = $this->pdo->prepare("SELECT SUM(quantity) as total FROM pre_purchases WHERE id_produit=? AND status IN ('pending', 'confirmed')");
         $stmt->execute([$productId]);

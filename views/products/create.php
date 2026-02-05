@@ -34,6 +34,14 @@
                         <p>Mise aux enchères avec temps limite</p>
                     </div>
                 </label>
+                <label class="sale-type-option">
+                    <input type="radio" name="sale_type" value="group">
+                    <div class="option-content">
+                        <i class="fas fa-users"></i>
+                        <h4>Vente groupée</h4>
+                        <p>Vente conditionnée au nombre d'acheteurs dans un délai</p>
+                    </div>
+                </label>
             </div>
         </div>
 
@@ -75,6 +83,19 @@
             <label>Fin de l'enchère</label>
             <input type="datetime-local" name="auction_end" />
             <small>L'enchère se terminera automatiquement à cette date</small>
+        </div>
+
+        <!-- Paramètres pour vente groupée -->
+        <div class="form-group" id="group-required-group" style="display: none;">
+            <label>Nombre d'acheteurs requis</label>
+            <input type="number" name="group_required_buyers" min="1" value="1" />
+            <small>Le produit ne sera vendu que si ce nombre d'acheteurs est atteint.</small>
+        </div>
+
+        <div class="form-group" id="group-expires-group" style="display: none;">
+            <label>Date/heure limite</label>
+            <input type="datetime-local" name="group_expires_at" />
+            <small>Si le nombre d'acheteurs requis n'est pas atteint à cette date, la vente échoue.</small>
         </div>
 
         <!-- Quantité disponible -->
@@ -476,6 +497,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const fixedPriceGroup = document.getElementById('fixed-price-group');
     const auctionPriceGroup = document.getElementById('auction-price-group');
     const auctionEndGroup = document.getElementById('auction-end-group');
+    const groupRequiredGroup = document.getElementById('group-required-group');
+    const groupExpiresGroup = document.getElementById('group-expires-group');
     
     // Fonction pour gérer l'affichage des champs selon le type de vente
     function handleSaleTypeChange() {
@@ -485,26 +508,53 @@ document.addEventListener('DOMContentLoaded', function() {
             fixedPriceGroup.style.display = 'block';
             auctionPriceGroup.style.display = 'none';
             auctionEndGroup.style.display = 'none';
-            
+            groupRequiredGroup.style.display = 'none';
+            groupExpiresGroup.style.display = 'none';
+
             // Rendre le champ prix obligatoire
             document.querySelector('input[name="prix"]').required = true;
             document.querySelector('input[name="starting_price"]').required = false;
             document.querySelector('input[name="auction_end"]').required = false;
+            document.querySelector('input[name="group_required_buyers"]').required = false;
+            document.querySelector('input[name="group_expires_at"]').required = false;
         } else if (selectedType === 'auction') {
             fixedPriceGroup.style.display = 'none';
             auctionPriceGroup.style.display = 'block';
             auctionEndGroup.style.display = 'block';
+            groupRequiredGroup.style.display = 'none';
+            groupExpiresGroup.style.display = 'none';
             
             // Rendre les champs d'enchère obligatoires
             document.querySelector('input[name="prix"]').required = false;
             document.querySelector('input[name="starting_price"]').required = true;
             document.querySelector('input[name="auction_end"]').required = true;
+            document.querySelector('input[name="group_required_buyers"]').required = false;
+            document.querySelector('input[name="group_expires_at"]').required = false;
             
             // Définir la date minimum (maintenant + 1 heure)
             const now = new Date();
             now.setHours(now.getHours() + 1);
             const minDateTime = now.toISOString().slice(0, 16);
             document.querySelector('input[name="auction_end"]').min = minDateTime;
+        } else if (selectedType === 'group') {
+            fixedPriceGroup.style.display = 'block';
+            auctionPriceGroup.style.display = 'none';
+            auctionEndGroup.style.display = 'none';
+            groupRequiredGroup.style.display = 'block';
+            groupExpiresGroup.style.display = 'block';
+
+            // Rendre les champs de vente groupée obligatoires
+            document.querySelector('input[name="prix"]').required = true;
+            document.querySelector('input[name="starting_price"]').required = false;
+            document.querySelector('input[name="auction_end"]').required = false;
+            document.querySelector('input[name="group_required_buyers"]').required = true;
+            document.querySelector('input[name="group_expires_at"]').required = true;
+
+            // Définir la date minimum (maintenant + 1 heure)
+            const now = new Date();
+            now.setHours(now.getHours() + 1);
+            const minDateTime = now.toISOString().slice(0, 16);
+            document.querySelector('input[name="group_expires_at"]').min = minDateTime;
         }
     }
     

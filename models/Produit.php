@@ -52,7 +52,7 @@ class Produit {
         
         if ($hasQuantityColumn) {
             $stmt = $this->db->prepare(
-                "INSERT INTO Produit (description, prix, prix_ht, taux_tva, image, image_alt, image_size, image_width, image_height, id_vendeur, id_categorie, quantity) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                "INSERT INTO Produit (description, prix, prix_ht, taux_tva, image, image_alt, image_size, image_width, image_height, id_vendeur, id_categorie, quantity, sale_type, group_required_buyers, group_expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             );
             return $stmt->execute([
                 $data['description'],
@@ -67,10 +67,13 @@ class Produit {
                 $data['id_vendeur'],
                 $data['id_categorie'] ?? null,
                 $data['quantity'] ?? 1,
+                $data['sale_type'] ?? 'buy',
+                $data['group_required_buyers'] ?? null,
+                $data['group_expires_at'] ?? null,
             ]);
         } else {
             $stmt = $this->db->prepare(
-                "INSERT INTO Produit (description, prix, prix_ht, taux_tva, image, image_alt, image_size, image_width, image_height, id_vendeur, id_categorie) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                "INSERT INTO Produit (description, prix, prix_ht, taux_tva, image, image_alt, image_size, image_width, image_height, id_vendeur, id_categorie, sale_type, group_required_buyers, group_expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             );
             return $stmt->execute([
                 $data['description'],
@@ -84,6 +87,9 @@ class Produit {
                 $data['image_height'] ?? null,
                 $data['id_vendeur'],
                 $data['id_categorie'] ?? null,
+                $data['sale_type'] ?? 'buy',
+                $data['group_required_buyers'] ?? null,
+                $data['group_expires_at'] ?? null,
             ]);
         }
     }
@@ -295,7 +301,7 @@ class Produit {
         $values = [];
         
         foreach ($data as $field => $value) {
-            if (in_array($field, ['description', 'prix', 'prix_ht', 'taux_tva', 'id_categorie', 'image', 'image_alt', 'image_size', 'image_width', 'image_height', 'quantity'])) {
+            if (in_array($field, ['description', 'prix', 'prix_ht', 'taux_tva', 'id_categorie', 'image', 'image_alt', 'image_size', 'image_width', 'image_height', 'quantity', 'sale_type', 'group_required_buyers', 'group_expires_at'])) {
                 $fields[] = "$field = ?";
                 $values[] = $value;
             }
