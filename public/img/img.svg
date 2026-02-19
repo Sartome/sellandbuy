@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Sell &amp; Buy icon" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7C3AED"/>
+      <stop offset="1" stop-color="#4F46E5"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="rgba(255,255,255,0.18)"/>
+      <stop offset="1" stop-color="rgba(255,255,255,0)"/>
+    </linearGradient>
+    <filter id="ds" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- background -->
+  <rect x="2" y="2" width="60" height="60" rx="12" fill="url(#bg)"/>
+  <rect x="2" y="2" width="60" height="60" rx="12" fill="url(#shine)" />
+
+  <!-- bold shopping-bag silhouette (primary shape for legibility at favicon sizes) -->
+  <g filter="url(#ds)">
+    <path d="M20 24h24a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H20a4 4 0 0 1-4-4V28a4 4 0 0 1 4-4z" fill="#FFFFFF"/>
+    <path d="M25 24a7 7 0 0 1 14 0" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+  </g>
+
+  <!-- subtle monogram to keep brand recognition at medium sizes -->
+  <text x="32" y="36.5" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="11.5" fill="#6D28D9">S</text>
+
+  <!-- small sparkle accent -->
+  <g transform="translate(46,14) rotate(20)">
+    <rect x="-1" y="-4" width="2" height="8" rx="1" fill="rgba(255,255,255,0.7)"/>
+    <rect x="-4" y="-1" width="8" height="2" rx="1" fill="rgba(255,255,255,0.7)"/>
+  </g>
+</svg>

@@ -12,6 +12,7 @@
     <meta http-equiv="X-XSS-Protection" content="1; mode=block">
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
     <title><?php echo $pageTitle ?? 'Sell & Buy'; ?></title>
+    <link rel="icon" type="image/svg+xml" href="<?php echo ASSETS_URL; ?>/img/img.svg">
     <link rel="stylesheet" href="<?php echo ASSETS_URL; ?>/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>

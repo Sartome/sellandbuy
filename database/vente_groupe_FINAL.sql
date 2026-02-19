@@ -490,10 +490,53 @@ DELIMITER ;
 -- SAMPLE DATA (OPTIONAL - COMMENT OUT FOR PRODUCTION)
 -- ========================================================================
 
--- Insert sample admin user (password: 'admin123' - CHANGE THIS!)
--- INSERT INTO Utilisateur (nom, prenom, email, motdepasse)
--- VALUES ('Admin', 'System', 'admin@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
--- INSERT INTO Gestionnaire (id_user) VALUES (LAST_INSERT_ID());
+-- Insert a system admin user to own default categories (password: 'admin123' - CHANGE THIS!)
+INSERT INTO Utilisateur (nom, prenom, email, motdepasse)
+VALUES ('Admin', 'System', 'admin@groupev.local', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
+SET @admin_id = LAST_INSERT_ID();
+INSERT INTO Gestionnaire (id_user) VALUES (@admin_id);
+
+-- Insert default product categories
+INSERT INTO Categorie (id_gestionnaire, lib) VALUES
+(@admin_id, 'Électronique'),
+(@admin_id, 'Vêtements'),
+(@admin_id, 'Maison & Jardin'),
+(@admin_id, 'Sports & Loisirs'),
+(@admin_id, 'Alimentation'),
+(@admin_id, 'Livres & Médias'),
+(@admin_id, 'Beauté & Santé'),
+(@admin_id, 'Jouets & Enfants'),
+(@admin_id, 'Auto & Moto'),
+(@admin_id, 'Autres');
+
+-- ========================================================================
+-- SUPPORT TICKET SYSTEM
+-- ========================================================================
+
+-- Support tickets created by sellers
+CREATE TABLE seller_ticket (
+    id_ticket INT PRIMARY KEY AUTO_INCREMENT,
+    titre VARCHAR(255) NOT NULL,
+    id_vendeur INT NOT NULL,
+    statut ENUM('ouvert','fermé','en_attente') NOT NULL DEFAULT 'ouvert',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_vendeur) REFERENCES Vendeur(id_user) ON DELETE CASCADE,
+    INDEX idx_seller_ticket_vendeur (id_vendeur),
+    INDEX idx_seller_ticket_statut (statut)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Messages within a seller ticket conversation
+CREATE TABLE seller_ticket_message (
+    id_message INT PRIMARY KEY AUTO_INCREMENT,
+    id_ticket INT NOT NULL,
+    id_vendeur INT NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_ticket) REFERENCES seller_ticket(id_ticket) ON DELETE CASCADE,
+    FOREIGN KEY (id_vendeur) REFERENCES Vendeur(id_user) ON DELETE CASCADE,
+    INDEX idx_seller_msg_ticket (id_ticket)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ========================================================================
 -- END OF SCHEMA
