@@ -11,6 +11,7 @@
         <a class="btn btn-secondary" href="#" onclick="window.location.reload(); return false;">Actualiser</a>
 
         <form method="post" action="index.php?controller=admin&action=saveDiagram" style="display:inline; margin-left:8px">
+            <?php echo Security::csrfField(); ?>
             <button type="submit" class="btn btn-success" onclick="return confirm('Enregistrer le diagramme ER dans database/er_diagram.svg ?')">Enregistrer dans database/er_diagram.svg</button>
         </form>
     </div>

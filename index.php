@@ -61,6 +61,14 @@ if ($actionParam === '') {
     $actionParam = 'index';
 }
 
+// Protection CSRF globale pour toutes les requetes POST hors API JSON
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $controllerParam !== 'api') {
+    $csrfToken = $_POST['csrf_token'] ?? null;
+    if (!Security::validateCsrfToken($csrfToken)) {
+        respondWithError(419, 'Jeton CSRF invalide ou expire. Rechargez la page et reessayez.');
+    }
+}
+
 $controllerClass = ucfirst($controllerParam) . 'Controller';
 $controllerFile = CONTROLLERS_PATH . '/' . $controllerClass . '.php';
 

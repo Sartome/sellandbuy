@@ -17,6 +17,7 @@
                     </div>
                 <?php endif; ?>
                 <form method="POST">
+                    <?php echo Security::csrfField(); ?>
                     <div class="form-group">
                         <label for="subject">Sujet</label>
                         <input type="text" id="subject" name="subject" required maxlength="255">

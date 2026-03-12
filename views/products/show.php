@@ -279,6 +279,7 @@ if (!empty($product['sale_type']) && $product['sale_type'] === 'group') {
                     <p>Vous avez déjà laissé un avis. Vous pouvez le mettre à jour ci-dessous.</p>
                 <?php endif; ?>
                 <form method="post" action="<?php echo BASE_URL; ?>/index.php?controller=review&action=create" class="review-form">
+                    <?php echo Security::csrfField(); ?>
                     <h3>Donnez votre avis sur ce produit</h3>
                     <p class="review-help">Votre retour aide les autres acheteurs à faire le bon choix.</p>
 

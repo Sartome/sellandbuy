@@ -86,6 +86,7 @@ $product = $produitModel->findById((int)$prePurchase['id_produit']);
                 <?php if ($prePurchase['status'] === 'pending'): ?>
                     <div class="prepurchase-actions">
                         <form method="POST" action="<?php echo BASE_URL; ?>/index.php?controller=acquisition&amp;action=cancelPrePurchase" onsubmit="return confirm('Annuler cette précommande ?');">
+                            <?php echo Security::csrfField(); ?>
                             <input type="hidden" name="id" value="<?php echo (int)$prePurchase['id']; ?>">
                             <button type="submit" class="btn btn-danger">
                                 <i class="fas fa-times"></i> Annuler la précommande

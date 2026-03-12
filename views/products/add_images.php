@@ -18,6 +18,7 @@
     <?php endif; ?>
 
     <form method="post" enctype="multipart/form-data" id="add-images-form" data-loading>
+        <?php echo Security::csrfField(); ?>
         <!-- Section Upload d'Images -->
         <div class="form-group">
             <label>Nouvelles images</label>

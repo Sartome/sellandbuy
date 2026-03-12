@@ -25,6 +25,7 @@
         <div class="admin-card">
             <h3>➕ Créer une Catégorie</h3>
             <form method="post" action="index.php?controller=admin&action=categories">
+                <?php echo Security::csrfField(); ?>
                 <input type="hidden" name="action" value="create">
                 <div class="form-group">
                     <label for="libelle">Nom de la catégorie :</label>
@@ -48,6 +49,7 @@
                                 <small>ID: <?php echo $cat['id_categorie']; ?></small>
                             </div>
                             <form method="post" action="index.php?controller=admin&action=categories" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?');">
+                                <?php echo Security::csrfField(); ?>
                                 <input type="hidden" name="action" value="delete">
                                 <input type="hidden" name="id" value="<?php echo $cat['id_categorie']; ?>">
                                 <button type="submit" class="btn btn-danger btn-sm">

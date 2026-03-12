@@ -17,6 +17,7 @@
         <?php endif; ?>
 
         <form method="post" action="index.php?controller=auth&action=register" id="register-form">
+            <?php echo Security::csrfField(); ?>
             <!-- Informations personnelles -->
             <div class="form-section">
                 <h3><i class="fas fa-user"></i> Informations personnelles</h3>

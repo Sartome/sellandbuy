@@ -17,6 +17,7 @@
         <?php endif; ?>
 
         <form method="post" action="index.php?controller=auth&action=login" id="login-form">
+            <?php echo Security::csrfField(); ?>
             <div class="form-section">
                 <div class="form-group">
                     <label for="login-email">Email *</label>

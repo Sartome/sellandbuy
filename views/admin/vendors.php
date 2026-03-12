@@ -99,6 +99,7 @@
                                     <div class="action-buttons">
                                         <?php if ($vendor['is_certified'] ?? false): ?>
                                             <form method="POST" style="display: inline;">
+                                                <?php echo Security::csrfField(); ?>
                                                 <input type="hidden" name="action" value="uncertify">
                                                 <input type="hidden" name="vendor_id" value="<?php echo (int)$vendor['id_user']; ?>">
                                                 <button type="submit" class="btn btn-warning btn-sm" 
@@ -108,6 +109,7 @@
                                             </form>
                                         <?php else: ?>
                                             <form method="POST" style="display: inline;">
+                                                <?php echo Security::csrfField(); ?>
                                                 <input type="hidden" name="action" value="certify">
                                                 <input type="hidden" name="vendor_id" value="<?php echo (int)$vendor['id_user']; ?>">
                                                 <button type="submit" class="btn btn-success btn-sm">
@@ -117,6 +119,7 @@
                                         <?php endif; ?>
                                         
                                         <form method="POST" style="display: inline;">
+                                            <?php echo Security::csrfField(); ?>
                                             <input type="hidden" name="action" value="delete_vendor">
                                             <input type="hidden" name="vendor_id" value="<?php echo (int)$vendor['id_user']; ?>">
                                             <button type="submit" class="btn btn-danger btn-sm" 
@@ -183,6 +186,7 @@
                                 <td>
                                     <div class="action-buttons">
                                         <form method="POST" style="display: inline;">
+                                            <?php echo Security::csrfField(); ?>
                                             <input type="hidden" name="action" value="delete_user">
                                             <input type="hidden" name="user_id" value="<?php echo (int)$user['id_user']; ?>">
                                             <button type="submit" class="btn btn-danger btn-sm" 

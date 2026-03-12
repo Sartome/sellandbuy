@@ -30,6 +30,7 @@
                         </td>
                         <td>
                             <form method="post" action="index.php?controller=admin&action=invoices&amp;action_type=delete" onsubmit="return confirm('Supprimer cette facture ?');">
+                                <?php echo Security::csrfField(); ?>
                                 <input type="hidden" name="id_facture" value="<?= htmlspecialchars($inv['id_facture']) ?>">
                                 <button type="submit" class="btn btn-danger">Supprimer</button>
                             </form>

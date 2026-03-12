@@ -32,6 +32,7 @@
                         <td><?= htmlspecialchars($s['date_signal']) ?></td>
                         <td>
                             <form method="post" action="index.php?controller=admin&action=deleteSignal" style="display:inline">
+                                <?php echo Security::csrfField(); ?>
                                 <input type="hidden" name="id" value="<?= htmlspecialchars($s['id_signal']) ?>">
                                 <button class="btn btn-danger" onclick="return confirm('Supprimer le signalement ?')">Supprimer</button>
                             </form>

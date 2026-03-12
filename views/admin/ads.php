@@ -128,6 +128,7 @@
                                             <i class="fas fa-edit"></i> Modifier
                                         </button>
                                         <form method="POST" style="display: inline;" onsubmit="return confirm('Supprimer cette annonce ?');">
+                                            <?php echo Security::csrfField(); ?>
                                             <input type="hidden" name="action" value="delete">
                                             <input type="hidden" name="product_id" value="<?php echo (int)$product['id_produit']; ?>">
                                             <button type="submit" class="btn btn-danger btn-sm">
@@ -153,6 +154,7 @@
             <span class="close" onclick="closeModal()">&times;</span>
         </div>
         <form method="POST" id="editForm">
+            <?php echo Security::csrfField(); ?>
             <input type="hidden" name="action" value="update">
             <input type="hidden" name="product_id" id="edit_product_id">
             

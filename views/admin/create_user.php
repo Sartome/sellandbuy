@@ -17,6 +17,7 @@
     <?php endif; ?>
 
     <form method="post" class="admin-form">
+        <?php echo Security::csrfField(); ?>
         <div class="form-grid">
             <div class="form-group">
                 <label for="prenom">Prénom</label>

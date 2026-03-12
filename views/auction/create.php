@@ -8,6 +8,7 @@
         <div class="alert error"><?php echo htmlspecialchars($error); ?></div>
     <?php endif; ?>
     <form method="post" data-loading>
+        <?php echo Security::csrfField(); ?>
         <div class="form-group">
             <label for="starting_price">Prix de départ (€)</label>
             <input required type="number" step="0.01" min="0" name="starting_price" id="starting_price">

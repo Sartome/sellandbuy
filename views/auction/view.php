@@ -29,6 +29,7 @@
                 <p class="seller">Nombre d'enchérisseurs: <?php echo (int)($biddersCount ?? 0); ?></p>
                 <?php if (!empty($_SESSION['user_id'])): ?>
                 <form method="post" action="<?php echo BASE_URL; ?>/index.php?controller=auction&action=bid" data-loading>
+                    <?php echo Security::csrfField(); ?>
                     <input type="hidden" name="auction_id" value="<?php echo (int)$auction['id']; ?>">
                     <div class="form-group">
                         <label for="amount">Votre offre (€)</label>

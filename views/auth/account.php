@@ -17,6 +17,7 @@
         </div>
 
         <form method="POST" enctype="multipart/form-data" data-validate>
+            <?php echo Security::csrfField(); ?>
             <div class="form-group">
                 <label for="nom">Nom :</label>
                 <input type="text" id="nom" name="nom" value="<?php echo htmlspecialchars($user['nom'] ?? ''); ?>" required>

@@ -49,6 +49,7 @@
                                 <td><?php echo date('d/m/Y H:i', strtotime($tax['created_at'] ?? 'now')); ?></td>
                                 <td>
                                     <form method="POST" style="display: inline;">
+                                        <?php echo Security::csrfField(); ?>
                                         <input type="hidden" name="action" value="delete_tax">
                                         <input type="hidden" name="tax_id" value="<?php echo (int)$tax['id']; ?>">
                                         <button type="submit" class="btn btn-danger btn-sm" 
@@ -70,6 +71,7 @@
         <h2>⚙️ Configuration des Taxes par Défaut</h2>
         
         <form method="post" action="index.php?controller=admin&action=settings">
+            <?php echo Security::csrfField(); ?>
             <input type="hidden" name="action" value="update_taxes">
             
             <div class="form-group">
@@ -101,6 +103,7 @@
         <h2>➕ Ajouter une Nouvelle Taxe</h2>
         
         <form method="post" action="index.php?controller=admin&action=settings">
+            <?php echo Security::csrfField(); ?>
             <input type="hidden" name="action" value="add_tax">
             
             <div class="form-group">

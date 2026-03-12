@@ -141,6 +141,7 @@
                                 </a>
                                 <?php if ($prePurchase['status'] === 'pending'): ?>
                                     <form method="POST" action="<?php echo BASE_URL; ?>/index.php?controller=acquisition&amp;action=cancelPrePurchase" style="display: inline;" onsubmit="return confirm('Annuler cette précommande ?');">
+                                        <?php echo Security::csrfField(); ?>
                                         <input type="hidden" name="id" value="<?php echo (int)$prePurchase['id']; ?>">
                                         <button type="submit" class="btn btn-danger btn-sm">
                                             <i class="fas fa-times"></i> Annuler

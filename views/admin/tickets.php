@@ -88,6 +88,7 @@
 
                         <div class="ticket-actions">
                             <form method="POST" class="ticket-reply-form">
+                                <?php echo Security::csrfField(); ?>
                                 <input type="hidden" name="ticket_id" value="<?php echo (int)$ticket['id']; ?>">
                                 <input type="hidden" name="action" value="answer">
                                 <div class="form-group">
@@ -98,6 +99,7 @@
                                         <i class="fas fa-reply"></i> Envoyer la réponse
                                     </button>
                                     <form method="POST" class="ticket-close-form">
+                                        <?php echo Security::csrfField(); ?>
                                         <input type="hidden" name="ticket_id" value="<?php echo (int)$ticket['id']; ?>">
                                         <input type="hidden" name="action" value="close">
                                         <button type="submit" class="btn btn-secondary btn-sm">
