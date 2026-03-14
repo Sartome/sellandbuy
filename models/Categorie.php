@@ -21,8 +21,23 @@ class Categorie {
         if ($id) {
             return (int)$id;
         }
-        $ins = $this->db->prepare("INSERT INTO Categorie (id_gestionnaire, lib) VALUES (NULL, ?)");
-        $ins->execute(['Acquisition']);
+        
+        // Find a valid admin/gestionnaire to assign ownership
+        $stmtAdmin = $this->db->query("SELECT id_user FROM Gestionnaire LIMIT 1");
+        $adminId = $stmtAdmin->fetchColumn();
+        if (!$adminId) {
+            // Create a default fallback admin user to satisfy foreign key constraints
+            $insUser = $this->db->prepare("INSERT INTO Utilisateur (nom, prenom, email, motdepasse) VALUES (?, ?, ?, ?)");
+            $insUser->execute(['System', 'Admin', 'system_admin_' . time() . '@sellandbuy.local', password_hash('admin123', PASSWORD_DEFAULT)]);
+            $newAdminId = $this->db->lastInsertId();
+            
+            $insGest = $this->db->prepare("INSERT INTO Gestionnaire (id_user) VALUES (?)");
+            $insGest->execute([$newAdminId]);
+            $adminId = $newAdminId;
+        }
+
+        $ins = $this->db->prepare("INSERT INTO Categorie (id_gestionnaire, lib) VALUES (?, ?)");
+        $ins->execute([$adminId, 'Acquisition']);
         return (int)$this->db->lastInsertId();
     }
 }

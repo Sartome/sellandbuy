@@ -31,12 +31,16 @@
             <div class="card" style="grid-column: span 12;">
                 <div class="body">
                     <p class="desc">Aucun produit pour le moment.</p>
-                    <p class="seller">Connectez-vous en tant que vendeur pour en publier un.</p>
+                    <?php if (!$isSeller): ?>
+                        <p class="seller">Connectez-vous en tant que vendeur pour en publier un.</p>
+                    <?php else: ?>
+                        <p class="seller">Soyez le premier à publier un produit !</p>
+                    <?php endif; ?>
                 </div>
             </div>
         <?php endif; ?>
         <?php foreach ($products as $p): ?>
-            <div class="card">
+            <div class="card animate-on-scroll card-hover">
                 <div class="thumb">
                     <?php if (!empty($p['image'])): ?>
                         <img src="<?php echo htmlspecialchars($p['image']); ?>" alt="Produit" class="thumbnail">
@@ -139,115 +143,7 @@
     </div>
 </main>
 
-<style>
-.badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 0.875rem;
-    font-weight: 500;
-}
 
-.badge.certified {
-    background: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-
-.seller-badge {
-    margin: 8px 0;
-}
-
-.seller-badge .badge {
-    font-size: 0.8rem;
-}
-
-.seller-with-avatar {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.seller-avatar-small {
-    width: 28px;
-    height: 28px;
-    border-radius: 999px;
-    overflow: hidden;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(15,23,42,0.8);
-}
-
-.seller-avatar-small img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-/* Styles pour les enchères */
-.auction-info {
-    margin: 8px 0;
-    padding: 12px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 8px;
-    color: white;
-}
-
-.auction-info .price {
-    font-size: 1.1rem;
-    font-weight: bold;
-    margin: 0 0 4px 0;
-}
-
-.auction-info .auction-end {
-    font-size: 0.9rem;
-    margin: 0 0 8px 0;
-    opacity: 0.9;
-}
-
-.auction-status {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    font-weight: 500;
-}
-
-.auction-status.active {
-    background: rgba(34, 197, 94, 0.2);
-    color: #10b981;
-    border: 1px solid rgba(34, 197, 94, 0.3);
-}
-
-.auction-status.ended {
-    background: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
-    border: 1px solid rgba(239, 68, 68, 0.3);
-}
-
-.btn-auction {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.btn-auction:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-    color: white;
-}
-</style>
 
 <?php require VIEWS_PATH . '/layouts/footer.php'; ?>
 

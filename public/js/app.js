@@ -629,20 +629,85 @@ function generateImageReport() {
 }
 
 function showLoading(message) {
-  const loadingDiv = document.createElement('div');
+  var loadingDiv = document.createElement('div');
   loadingDiv.className = 'admin-loading';
-  loadingDiv.innerHTML = `
-    <div class="loading-content">
-      <div class="loading-spinner"></div>
-      <p>${message}</p>
-    </div>
-  `;
+
+  var content = document.createElement('div');
+  content.className = 'loading-content';
+
+  var spinner = document.createElement('div');
+  spinner.className = 'loading-spinner';
+
+  var p = document.createElement('p');
+  p.textContent = message;
+
+  content.appendChild(spinner);
+  content.appendChild(p);
+  loadingDiv.appendChild(content);
   document.body.appendChild(loadingDiv);
 }
 
 function hideLoading() {
-  const loadingDiv = document.querySelector('.admin-loading');
+  var loadingDiv = document.querySelector('.admin-loading');
   if (loadingDiv) {
     loadingDiv.remove();
   }
 }
+
+// =========================================
+// HAMBURGER MENU TOGGLE
+// =========================================
+(function() {
+  var hamburger = document.getElementById('hamburger-toggle');
+  var navLinks = document.getElementById('nav-links');
+  if (hamburger && navLinks) {
+    hamburger.addEventListener('click', function() {
+      hamburger.classList.toggle('active');
+      navLinks.classList.toggle('open');
+      var expanded = hamburger.getAttribute('aria-expanded') === 'true';
+      hamburger.setAttribute('aria-expanded', String(!expanded));
+    });
+  }
+})();
+
+// =========================================
+// SCROLL TO TOP BUTTON
+// =========================================
+(function() {
+  var scrollBtn = document.getElementById('scroll-to-top');
+  if (!scrollBtn) return;
+
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 300) {
+      scrollBtn.classList.add('visible');
+    } else {
+      scrollBtn.classList.remove('visible');
+    }
+  });
+
+  scrollBtn.addEventListener('click', function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+})();
+
+// =========================================
+// INTERSECTION OBSERVER FOR ANIMATIONS
+// =========================================
+(function() {
+  const animatedElements = document.querySelectorAll('.animate-on-scroll');
+  if (!animatedElements.length) return;
+
+  const animationObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        // observer.unobserve(entry.target); // Optional: unobserve if we only want it to animate once
+      }
+    });
+  }, {
+    threshold: 0.1, // Trigger when 10% of element is visible
+    rootMargin: '0px 0px -50px 0px' 
+  });
+
+  animatedElements.forEach(el => animationObserver.observe(el));
+})();

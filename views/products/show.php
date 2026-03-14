@@ -49,7 +49,7 @@ if (!empty($product['sale_type']) && $product['sale_type'] === 'group') {
 
     <div class="product-detail">
         <!-- Galerie d'images améliorée -->
-        <div class="image-gallery">
+        <div class="image-gallery animate-on-scroll">
             <?php if (!empty($productImages)): ?>
                 <div class="main-image-container">
                     <img id="main-image" src="<?php echo htmlspecialchars($productImages[0]['image_path']); ?>" 
@@ -104,7 +104,7 @@ if (!empty($product['sale_type']) && $product['sale_type'] === 'group') {
             <?php endif; ?>
         </div>
 
-        <div class="product-info">
+        <div class="product-info animate-on-scroll" style="transition-delay: 0.1s;">
             <div class="product-header">
                 <h1><?php echo htmlspecialchars($product['description']); ?></h1>
                 <div class="product-meta">
@@ -239,7 +239,7 @@ if (!empty($product['sale_type']) && $product['sale_type'] === 'group') {
         </div>
     </div>
 
-    <div class="product-reviews">
+    <div class="product-reviews animate-on-scroll" style="transition-delay: 0.2s;">
         <h2>Avis des acheteurs</h2>
 
         <?php if (!empty($reviews)): ?>
@@ -323,60 +323,7 @@ if (!empty($product['sale_type']) && $product['sale_type'] === 'group') {
     </div>
 </main>
 
-<style>
-    .price-details {
-        font-size: 0.9em;
-        color: #666;
-        margin-top: 5px;
-    }
-    
-    .price-ttc {
-        font-size: 1.5em;
-        font-weight: bold;
-        color: #2c3e50;
-    }
-    
-    .price-ht {
-        color: #7f8c8d;
-    }
-    
-    .tax-rate {
-        font-size: 0.9em;
-        color: #95a5a6;
-        margin-left: 5px;
-    }
-    .review-form .rating-input {
-        display: inline-flex;
-        flex-direction: row-reverse;
-        justify-content: flex-end;
-        gap: 4px;
-    }
 
-    .review-form .rating-input input[type="radio"] {
-        display: none;
-    }
-
-    .review-form .rating-input label {
-        cursor: pointer;
-        font-size: 1.8rem;
-        line-height: 1;
-        color: #e2e8f0;
-        transition: color 0.2s ease-in-out;
-    }
-
-    /* Fill stars on hover */
-    .review-form .rating-input input[type="radio"]:hover ~ label,
-    .review-form .rating-input input[type="radio"]:checked ~ label,
-    .review-form .rating-input label:hover,
-    .review-form .rating-input label:hover ~ label {
-        color: #facc15;
-    }
-    
-    /* Keep stars filled when a rating is selected */
-    .review-form .rating-input:not(:hover) input[type="radio"]:checked ~ label {
-        color: #facc15;
-    }
-</style>
 
 
 <script nonce="<?php echo $_SESSION['csp_nonce'] ?? ''; ?>">

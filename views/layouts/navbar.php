@@ -3,7 +3,12 @@
         <div class="logo">
             <i class="fas fa-cart-shopping"></i> Sell & Buy
         </div>
-        <div class="nav-links">
+        <button class="hamburger" id="hamburger-toggle" type="button" aria-label="Menu" aria-expanded="false">
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+        </button>
+        <div class="nav-links" id="nav-links">
             <a href="<?php echo BASE_URL; ?>/index.php?controller=product&action=index">
                 <i class="fas fa-store"></i> Produits
             </a>

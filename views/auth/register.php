@@ -10,8 +10,8 @@
         </div>
 
         <?php if (!empty($error)): ?>
-            <div class="alert error" style="animation: shake 0.5s ease-in-out; background: #fee; border: 2px solid #f88; color: #c33; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(204, 51, 51, 0.2);">
-                <i class="fas fa-exclamation-triangle" style="margin-right: 8px; color: #c33;"></i>
+            <div class="alert error">
+                <i class="fas fa-exclamation-triangle"></i>
                 <strong>Erreur d'inscription :</strong> <?php echo htmlspecialchars($error); ?>
             </div>
         <?php endif; ?>
@@ -461,15 +461,20 @@ document.addEventListener('DOMContentLoaded', function() {
         return 'very-strong';
     }
 
-    function showAlert(message, type = 'info') {
-        const alert = document.createElement('div');
-        alert.className = `alert ${type}`;
-        alert.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
+    function showAlert(message, type) {
+        type = type || 'info';
+        var alert = document.createElement('div');
+        alert.className = 'alert ' + type;
         
-        const container = document.querySelector('.auth-container');
+        var icon = document.createElement('i');
+        icon.className = 'fas fa-exclamation-triangle';
+        alert.appendChild(icon);
+        alert.appendChild(document.createTextNode(' ' + message));
+        
+        var container = document.querySelector('.auth-container');
         container.insertBefore(alert, container.firstChild);
         
-        setTimeout(() => alert.remove(), 5000);
+        setTimeout(function() { alert.remove(); }, 5000);
     }
 });
 </script>

@@ -11,8 +11,8 @@
     <form method="post" enctype="multipart/form-data" id="product-form" data-loading>
         <?php echo Security::csrfField(); ?>
         <div class="form-group">
-            <label>Description</label>
-            <textarea name="description" required placeholder="Décrivez votre produit en détail..."></textarea>
+            <label>Nom / Description du produit</label>
+            <textarea name="description" required placeholder="Nom et description détaillée de votre produit..."></textarea>
         </div>
         
         <!-- Type de vente -->
